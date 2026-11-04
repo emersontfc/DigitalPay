@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Product, TemplateType } from '../../types';
+import { Product } from '../../types';
 import {
   fetchProducts,
   saveProduct,
   deleteProduct,
-  isSupabaseConfigured,
-  resetLocalData
+  isSupabaseConfigured
 } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import {
@@ -21,14 +21,15 @@ import {
   Layers,
   Sparkles,
   ShoppingBag,
-  ArrowUpRight,
   RefreshCw,
-  Eye,
-  SlidersHorizontal
+  LogOut,
+  Settings,
+  UserCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AdminDashboard: React.FC = () => {
+  const { user, logout } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +63,7 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleSaveProduct = async (productData: Partial<Product>) => {
-    const saved = await saveProduct(productData);
+    await saveProduct(productData);
     await loadData();
     setIsEditorOpen(false);
     setEditingProduct(null);
@@ -115,7 +116,7 @@ export const AdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
       {/* 1. Header do Painel */}
       <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Link to="/admin" className="flex items-center gap-2.5 group">
@@ -137,19 +138,6 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Ações Topo */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Status Supabase */}
-            <button
-              onClick={() => setIsSupabaseModalOpen(true)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                supabaseConnected
-                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/40'
-                  : 'bg-amber-950/40 border-amber-500/40 text-amber-300 hover:bg-amber-900/40'
-              }`}
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>{supabaseConnected ? 'Supabase Conectado' : 'Supabase (Configurar)'}</span>
-            </button>
-
             {/* Ver Catálogo Público */}
             <Link
               to="/"
@@ -170,6 +158,33 @@ export const AdminDashboard: React.FC = () => {
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Criar Nova Página</span>
             </button>
+
+            {/* Configuração Discreta do Banco */}
+            <button
+              onClick={() => setIsSupabaseModalOpen(true)}
+              title={supabaseConnected ? 'Banco de Dados Conectado' : 'Configurações de Banco de Dados'}
+              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            {/* Perfil do Usuário & Logout */}
+            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-800">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/30">
+                {user?.name?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <div className="hidden sm:block text-left text-xs">
+                <div className="font-bold text-white truncate max-w-[130px]">{user?.name}</div>
+                <div className="text-[10px] text-slate-400 truncate max-w-[130px]">{user?.email}</div>
+              </div>
+              <button
+                onClick={logout}
+                title="Sair da Conta"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -464,4 +479,3 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-

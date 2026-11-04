@@ -11,8 +11,7 @@ import {
   LayoutDashboard,
   ExternalLink,
   ChevronRight,
-  Database,
-  CheckCircle2,
+  UserCheck,
   Lock
 } from 'lucide-react';
 
@@ -40,19 +39,28 @@ export const HomePage: React.FC = () => {
       <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <span className="font-black text-emerald-400 text-lg">DP</span>
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                  <span className="font-black text-emerald-400 text-lg">DP</span>
+                </div>
               </div>
-            </div>
-            <div>
-              <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
-                Digital<span className="text-emerald-400">Pay</span>
-              </span>
-            </div>
+              <div>
+                <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
+                  Digital<span className="text-emerald-400">Pay</span>
+                </span>
+              </div>
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              to="/login"
+              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+            >
+              Fazer Login
+            </Link>
+
             <Link
               to="/admin"
               className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2"
@@ -83,7 +91,7 @@ export const HomePage: React.FC = () => {
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
-            Painel administrativo completo: escolha templates prontos para cada produto, personalize preços, textos, vídeos e adicione seus links de pagamento com facilidade.
+            Painel administrativo com controle de acesso e login: escolha templates prontos para cada produto, personalize preços, vídeos e adicione seus links de pagamento com facilidade.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -91,7 +99,7 @@ export const HomePage: React.FC = () => {
               to="/admin"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2"
             >
-              <span>Acessar Painel Administrativo</span>
+              <span>Acessar Painel do Administrador</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
@@ -109,9 +117,9 @@ export const HomePage: React.FC = () => {
               <div className="text-xs text-slate-400 mt-0.5">Kiwify, Stripe, etc.</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800">
-              <Database className="w-5 h-5 text-emerald-400 mb-2" />
-              <div className="text-sm font-bold text-white">Banco Supabase</div>
-              <div className="text-xs text-slate-400 mt-0.5">PostgreSQL em nuvem</div>
+              <UserCheck className="w-5 h-5 text-emerald-400 mb-2" />
+              <div className="text-sm font-bold text-white">Login & Cadastro</div>
+              <div className="text-xs text-slate-400 mt-0.5">Acesso administrativo seguro</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800">
               <ShieldCheck className="w-5 h-5 text-emerald-400 mb-2" />
@@ -220,4 +228,3 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
-
