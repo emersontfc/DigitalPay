@@ -1,0 +1,92 @@
+import React from 'react';
+import confetti from 'canvas-confetti';
+import { ShoppingCart, ShieldCheck, Zap, ArrowRight, Lock } from 'lucide-react';
+
+interface CheckoutButtonProps {
+  ctaText: string;
+  ctaUrl: string;
+  ctaSubtext?: string;
+  promoPrice?: number;
+  installmentsText?: string;
+  variant?: 'neon' | 'luxury' | 'gold';
+  size?: 'lg' | 'xl' | 'normal';
+  fullWidth?: boolean;
+  className?: string;
+}
+
+export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
+  ctaText,
+  ctaUrl,
+  ctaSubtext,
+  promoPrice,
+  installmentsText,
+  variant = 'neon',
+  size = 'xl',
+  fullWidth = true,
+  className = '',
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Dispara efeito de confetes
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.7 },
+      });
+    } catch {
+      // Ignora silenciosamente se o canvas não estiver disponível
+    }
+
+    // Se a URL for um link válido, abre em nova aba
+    if (ctaUrl) {
+      window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const variantStyles = {
+    neon: {
+      btn: 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_45px_rgba(16,185,129,0.7)]',
+      subtext: 'text-emerald-400/90',
+      icon: <Zap className="w-6 h-6 fill-slate-950 text-slate-950 animate-bounce" />,
+    },
+    luxury: {
+      btn: 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-slate-900 hover:from-indigo-500 hover:to-slate-800 text-white font-bold shadow-xl hover:shadow-indigo-500/20 border border-indigo-400/30',
+      subtext: 'text-slate-400',
+      icon: <ArrowRight className="w-5 h-5 text-indigo-300" />,
+    },
+    gold: {
+      btn: 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-neutral-950 font-black shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:shadow-[0_0_50px_rgba(245,158,11,0.8)] border-2 border-amber-300',
+      subtext: 'text-amber-400/90 font-medium',
+      icon: <ShoppingCart className="w-6 h-6 fill-neutral-950 text-neutral-950" />,
+    },
+  }[variant];
+
+  const sizeClasses = {
+    normal: 'py-3 px-6 text-base',
+    lg: 'py-4 px-8 text-lg',
+    xl: 'py-5 px-8 text-lg sm:text-xl md:text-2xl',
+  }[size];
+
+  return (
+    <div className={`flex flex-col items-center gap-2.5 ${fullWidth ? 'w-full' : 'inline-flex'} ${className}`}>
+      <button
+        onClick={handleClick}
+        className={`group relative flex items-center justify-center gap-3 rounded-2xl transition-all duration-300 transform active:scale-95 cursor-pointer uppercase tracking-wider text-center ${sizeClasses} ${variantStyles.btn} ${fullWidth ? 'w-full' : ''}`}
+      >
+        <span className="shrink-0">{variantStyles.icon}</span>
+        <span className="font-extrabold drop-shadow-sm">{ctaText}</span>
+        <span className="shrink-0 group-hover:translate-x-1.5 transition-transform duration-200">
+          <ArrowRight className="w-5 h-5" />
+        </span>
+      </button>
+
+      {ctaSubtext && (
+        <div className={`flex items-center justify-center gap-1.5 text-xs sm:text-sm text-center ${variantStyles.subtext}`}>
+          <Lock className="w-3.5 h-3.5 shrink-0" />
+          <span>{ctaSubtext}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
