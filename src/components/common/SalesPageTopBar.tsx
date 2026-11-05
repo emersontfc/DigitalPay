@@ -49,3 +49,4 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({ variant = 'neo
     </div>
   );
 };
+

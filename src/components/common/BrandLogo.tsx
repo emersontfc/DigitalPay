@@ -111,3 +111,4 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   return content;
 };
+

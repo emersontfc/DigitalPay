@@ -5,6 +5,9 @@ import { HomePage } from './pages/public/HomePage';
 import { SalesPage } from './pages/public/SalesPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { LoginPage } from './pages/auth/LoginPage';
+import { AIBuilderDashboard } from './pages/admin/AIBuilderDashboard';
+import { AICreationWizard } from './pages/admin/AICreationWizard';
+import { AIVisualEditor } from './pages/admin/AIVisualEditor';
 
 export function App() {
   return (
@@ -28,12 +31,39 @@ export function App() {
             }
           />
 
+          {/* DigitalPay AI Builder */}
+          <Route
+            path="/admin/ai-builder"
+            element={
+              <ProtectedRoute>
+                <AIBuilderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ai-builder/new"
+            element={
+              <ProtectedRoute>
+                <AICreationWizard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ai-builder/edit/:id"
+            element={
+              <ProtectedRoute>
+                <AIVisualEditor />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Páginas de vendas públicas com URLs amigáveis */}
           <Route path="/p/:slug" element={<SalesPage />} />
 
           {/* Redirecionamentos de conveniência */}
           <Route path="/painel" element={<Navigate to="/admin" replace />} />
           <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+          <Route path="/ai-builder" element={<Navigate to="/admin/ai-builder" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

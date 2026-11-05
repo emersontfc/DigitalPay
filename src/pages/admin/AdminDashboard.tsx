@@ -30,7 +30,9 @@ import {
   Settings,
   UserCheck,
   Users,
-  Bookmark
+  Bookmark,
+  Wand2,
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -184,6 +186,15 @@ export const AdminDashboard: React.FC = () => {
               <span>Ver Vitrine Geral</span>
             </Link>
 
+            {/* AI Page Builder */}
+            <Link
+              to="/admin/ai-builder"
+              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4 text-purple-200 animate-pulse" />
+              <span>AI Page Builder</span>
+            </Link>
+
             {/* Biblioteca de Modelos */}
             <button
               onClick={() => setIsModelModalOpen(true)}
@@ -293,6 +304,35 @@ export const AdminDashboard: React.FC = () => {
             <div className="text-3xl font-black text-indigo-400">3 Estilos</div>
             <p className="text-xs text-slate-500 mt-1">Neon Kiwify, Minimal & Gold</p>
           </div>
+        </div>
+
+        {/* Banner de Destaque do AI Builder */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950/50 via-slate-900 to-slate-950 border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                DigitalPay AI Page Builder
+                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                  Novo
+                </span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Crie páginas de vendas completas, com copywriting persuasivo e design responsivo com simples instruções de IA.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/admin/ai-builder"
+            className="w-full md:w-auto px-5 py-2.5 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-md cursor-pointer"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            <span>Acessar AI Builder</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
         {/* 3. Filtros & Busca */}
