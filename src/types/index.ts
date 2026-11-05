@@ -37,6 +37,7 @@ export interface Product {
   badge_text: string;
   
   // Pricing & Checkout
+  currency?: string; // BRL (R$), USD ($), EUR (€), AOA (Kz), MZN (MT), etc.
   original_price: number;
   promo_price: number;
   installments_text: string;
@@ -67,4 +68,3 @@ export interface TemplateDefinition {
   previewGradient: string;
   accentColor: string;
 }
-

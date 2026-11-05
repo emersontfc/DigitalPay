@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
 import { CheckoutButton } from './CheckoutButton';
-import { ShieldCheck } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 interface StickyCtaBarProps {
   product: Product;
@@ -48,11 +48,11 @@ export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-xl md:text-2xl font-black text-white">
-              R$ {product.promo_price.toFixed(2).replace('.', ',')}
+              {formatPrice(product.promo_price, product.currency)}
             </span>
             {product.original_price > product.promo_price && (
               <span className="text-xs line-through text-slate-500">
-                R$ {product.original_price.toFixed(2).replace('.', ',')}
+                {formatPrice(product.original_price, product.currency)}
               </span>
             )}
             <span className="text-xs text-emerald-400 font-medium">

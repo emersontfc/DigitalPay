@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { formatPrice } from '../../utils/currency';
 import {
   Flame,
   CheckCircle2,
@@ -243,12 +244,12 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
 
           {product.original_price > product.promo_price && (
             <div className="text-neutral-500 text-sm line-through font-semibold mb-1">
-              De R$ {product.original_price.toFixed(2).replace('.', ',')} por apenas:
+              De {formatPrice(product.original_price, product.currency)} por apenas:
             </div>
           )}
 
           <div className="text-4xl sm:text-5xl font-black text-amber-400 my-2">
-            R$ {product.promo_price.toFixed(2).replace('.', ',')}
+            {formatPrice(product.promo_price, product.currency)}
           </div>
           <div className="text-sm text-neutral-300 font-bold mb-8">
             {product.installments_text}

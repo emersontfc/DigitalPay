@@ -3,6 +3,14 @@
 -- Execute este script no SQL Editor do seu projeto Supabase (supabase.com)
 -- =========================================================================
 
+-- Adiciona coluna de moeda caso a tabela já tenha sido criada anteriormente
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL';
+    END IF;
+END $$;
+
 -- 1. Criação da tabela de produtos
 CREATE TABLE IF NOT EXISTS public.products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -19,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     badge_text TEXT DEFAULT 'Oferta Exclusiva por Tempo Limitado',
     
     -- Preço e Checkout
+    currency TEXT NOT NULL DEFAULT 'BRL',
     original_price NUMERIC(10, 2) NOT NULL DEFAULT 297.00,
     promo_price NUMERIC(10, 2) NOT NULL DEFAULT 97.00,
     installments_text TEXT DEFAULT 'ou 12x de R$ 9,74 no cartão',

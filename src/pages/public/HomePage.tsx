@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { fetchProducts } from '../../lib/supabase';
+import { formatPrice } from '../../utils/currency';
 import {
   Sparkles,
   ArrowRight,
@@ -182,7 +183,7 @@ export const HomePage: React.FC = () => {
                       Template: {p.template}
                     </span>
                     <span className="text-lg font-black text-white drop-shadow">
-                      R$ {p.promo_price.toFixed(2).replace('.', ',')}
+                      {formatPrice(p.promo_price, p.currency)}
                     </span>
                   </div>
                 </div>

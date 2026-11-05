@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { formatPrice } from '../../utils/currency';
 import {
   CheckCircle2,
   Shield,
@@ -277,14 +278,14 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
           {/* Comparativo de Preço */}
           {product.original_price > product.promo_price && (
             <div className="text-slate-500 text-sm font-semibold mb-1 line-through">
-              De R$ {product.original_price.toFixed(2).replace('.', ',')} por apenas:
+              De {formatPrice(product.original_price, product.currency)} por apenas:
             </div>
           )}
 
           <div className="mb-2">
             <span className="text-slate-400 text-sm font-medium">Por apenas</span>
             <div className="text-4xl sm:text-5xl font-black text-white tracking-tight my-1">
-              R$ {product.promo_price.toFixed(2).replace('.', ',')}
+              {formatPrice(product.promo_price, product.currency)}
             </div>
             <div className="text-emerald-400 font-bold text-sm sm:text-base">
               {product.installments_text}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product, TemplateType, ModuleItem, Testimonial, FaqItem } from '../../types';
 import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
+import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import {
   X,
   Save,
@@ -13,11 +14,8 @@ import {
   Sparkles,
   Layers,
   HelpCircle,
-  MessageSquare,
-  Clock,
-  Shield,
   Video,
-  Image as ImageIcon
+  Coins
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -48,9 +46,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [heroMediaUrl, setHeroMediaUrl] = useState(product?.hero_media_url || '');
   const [badgeText, setBadgeText] = useState(product?.badge_text || 'OFERTA EXCLUSIVA');
 
+  const [currency, setCurrency] = useState<string>(product?.currency || 'BRL');
   const [originalPrice, setOriginalPrice] = useState<number>(product?.original_price || 297);
   const [promoPrice, setPromoPrice] = useState<number>(product?.promo_price || 97);
-  const [installmentsText, setInstallmentsText] = useState(product?.installments_text || 'ou 12x de R$ 9,70');
+  const [installmentsText, setInstallmentsText] = useState(product?.installments_text || 'ou 12x no cartão');
   const [ctaText, setCtaText] = useState(product?.cta_text || 'QUERO GARANTIR MINHA VAGA AGORA');
   const [ctaUrl, setCtaUrl] = useState(product?.cta_url || 'https://pay.kiwify.com.br');
   const [ctaSubtext, setCtaSubtext] = useState(product?.cta_subtext || '🔒 Compra 100% Segura • Acesso Imediato');
@@ -174,6 +173,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     slug: slug || 'produto',
     status,
     template,
+    currency,
     headline: headline || 'Headline Principal de Alta Conversão',
     subheadline,
     hero_type: heroType,
@@ -207,6 +207,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
         status,
         template,
+        currency,
         headline,
         subheadline,
         hero_type: heroType,
@@ -477,10 +478,28 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     💡 <strong>Como funcionam os botões de pagamento:</strong> Coloque abaixo o link de checkout do produto (seja da Kiwify, Eduzz, Hotmart, Mercado Pago, Stripe ou WhatsApp). Quando o comprador clicar no botão da página, ele é direcionado imediatamente para o pagamento com efeito comemorativo.
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Coins className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Moeda</span>
+                      </label>
+                      <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 text-sm"
+                      >
+                        {SUPPORTED_CURRENCIES.map((cur) => (
+                          <option key={cur.code} value={cur.code}>
+                            {cur.symbol} - {cur.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Preço Original Riscado (R$)
+                        Preço Original Riscado
                       </label>
                       <input
                         type="number"
@@ -494,7 +513,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
                     <div>
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Preço Promocional Atual (R$) *
+                        Preço Promocional *
                       </label>
                       <input
                         type="number"
@@ -513,7 +532,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       </label>
                       <input
                         type="text"
-                        placeholder="ou 12x de R$ 19,78 no cartão"
+                        placeholder="ou 12x no cartão"
                         value={installmentsText}
                         onChange={(e) => setInstallmentsText(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm"

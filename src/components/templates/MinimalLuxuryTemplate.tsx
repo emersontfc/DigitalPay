@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { formatPrice } from '../../utils/currency';
 import {
   Award,
   CheckCircle,
@@ -226,12 +227,12 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
 
           {product.original_price > product.promo_price && (
             <div className="text-slate-500 text-sm line-through mb-1">
-              De R$ {product.original_price.toFixed(2).replace('.', ',')} por:
+              De {formatPrice(product.original_price, product.currency)} por:
             </div>
           )}
 
           <div className="text-4xl font-black text-white my-2">
-            R$ {product.promo_price.toFixed(2).replace('.', ',')}
+            {formatPrice(product.promo_price, product.currency)}
           </div>
           <div className="text-sm text-indigo-300 font-medium mb-8">
             {product.installments_text}

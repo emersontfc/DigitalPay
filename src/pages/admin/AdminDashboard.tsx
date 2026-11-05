@@ -7,6 +7,7 @@ import {
   isSupabaseConfigured
 } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { formatPrice } from '../../utils/currency';
 import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import {
@@ -374,7 +375,7 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex items-baseline justify-between">
                         <span className="text-xs text-slate-400">Preço Promocional:</span>
                         <span className="text-base font-black text-white">
-                          R$ {prod.promo_price.toFixed(2).replace('.', ',')}
+                          {formatPrice(prod.promo_price, prod.currency)}
                         </span>
                       </div>
                       <div className="text-[11px] text-slate-500 flex items-center justify-between">

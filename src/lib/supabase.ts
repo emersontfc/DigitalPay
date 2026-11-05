@@ -6,6 +6,10 @@ const STORAGE_KEY_PRODUCTS = 'digitalpay_products_local';
 const STORAGE_KEY_SUPABASE_URL = 'digitalpay_supabase_url';
 const STORAGE_KEY_SUPABASE_KEY = 'digitalpay_supabase_anon_key';
 
+// Credenciais padrão do Supabase fornecidas para o DigitalPay
+export const DEFAULT_SUPABASE_URL = 'https://qurmkmevghdosokyfbtc.supabase.co';
+export const DEFAULT_SUPABASE_KEY = 'sb_publishable_vzEJCFJojdELMsCkztGfsw_2aiFgWMz';
+
 export function getSupabaseConfig(): { url: string; key: string } {
   const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -14,8 +18,8 @@ export function getSupabaseConfig(): { url: string; key: string } {
   const localKey = localStorage.getItem(STORAGE_KEY_SUPABASE_KEY) || '';
 
   return {
-    url: localUrl || envUrl,
-    key: localKey || envKey,
+    url: localUrl || envUrl || DEFAULT_SUPABASE_URL,
+    key: localKey || envKey || DEFAULT_SUPABASE_KEY,
   };
 }
 
@@ -90,7 +94,7 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
   }
 
   try {
-    const { data, error } = await client.from('products').select('count', { count: 'exact', head: true });
+    const { error } = await client.from('products').select('count', { count: 'exact', head: true });
     if (error) {
       return { success: false, message: `Erro ao consultar tabela products: ${error.message}` };
     }
@@ -118,8 +122,6 @@ export async function fetchProducts(): Promise<Product[]> {
     }
 
     if (!data || data.length === 0) {
-      // Se a tabela estiver vazia no Supabase, podemos inicializar com os dados de exemplo
-      console.log('Tabela vazia no Supabase, exibindo inicial e salvando...');
       return getLocalProducts();
     }
 
@@ -158,8 +160,6 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
 export async function saveProduct(product: Partial<Product> & { id?: string }): Promise<Product> {
   const now = new Date().toISOString();
   const client = getSupabaseClient();
-
-  const isNew = !product.id;
   const targetId = product.id || crypto.randomUUID();
 
   const fullProduct: Product = {
@@ -175,6 +175,7 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
       .replace(/^-|-$/g, ''),
     status: product.status || 'active',
     template: product.template || 'kiwify-neon',
+    currency: product.currency || 'BRL',
     headline: product.headline || 'Aprenda o Método Definitivo Para Ter Resultados',
     subheadline: product.subheadline || '',
     hero_type: product.hero_type || 'image',
@@ -209,6 +210,7 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
 
   if (client) {
     try {
+      // Clona e remove campos que possam não existir na tabela se o schema não tiver sido atualizado
       const { error } = await client
         .from('products')
         .upsert(fullProduct, { onConflict: 'id' });
@@ -246,4 +248,3 @@ export async function deleteProduct(id: string): Promise<void> {
 export function resetLocalData() {
   localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
 }
-
