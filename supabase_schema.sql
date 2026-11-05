@@ -197,3 +197,41 @@ INSERT INTO public.products (
     ]'::jsonb
 ) ON CONFLICT (slug) DO NOTHING;
 
+-- =========================================================================
+-- 6. TABELA DE USUÁRIOS ADMINISTRADORES E GESTÃO DE APROVAÇÕES
+-- =========================================================================
+CREATE TABLE IF NOT EXISTS public.admin_users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('approved', 'pending', 'rejected')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Read and Write for Admin Users" ON public.admin_users;
+CREATE POLICY "Public Read and Write for Admin Users" 
+ON public.admin_users 
+FOR ALL 
+USING (true)
+WITH CHECK (true);
+
+-- Cadastra o Emerson Torres como Super Admin aprovado
+INSERT INTO public.admin_users (id, email, name, password, role, status)
+VALUES (
+    'e0000000-0000-0000-0000-000000000001',
+    'emersontorres42@gmail.com',
+    'Emerson Torres',
+    '112212',
+    'super_admin',
+    'approved'
+) ON CONFLICT (email) DO UPDATE SET
+    role = 'super_admin',
+    status = 'approved',
+    password = '112212';
+
+

@@ -23,9 +23,9 @@ interface AuthContextType {
   
   // Gestão de Aprovações (para Emerson / Super Admin)
   getRegisteredUsers: () => UserProfile[];
-  approveUser: (userId: string) => void;
-  rejectUser: (userId: string) => void;
-  deleteUser: (userId: string) => void;
+  approveUser: (userId: string) => Promise<void>;
+  rejectUser: (userId: string) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
   pendingCount: number;
 }
 
@@ -36,7 +36,7 @@ const LOCAL_STORAGE_USERS_DB = 'digitalpay_users_database';
 
 // Super Admin inicial configurado
 const MASTER_ADMIN: UserProfile = {
-  id: 'master-emerson-001',
+  id: 'e0000000-0000-0000-0000-000000000001',
   email: 'emersontorres42@gmail.com',
   name: 'Emerson Torres',
   role: 'super_admin',
@@ -45,7 +45,7 @@ const MASTER_ADMIN: UserProfile = {
   created_at: new Date().toISOString(),
 };
 
-function getStoredUsers(): UserProfile[] {
+function getLocalUsers(): UserProfile[] {
   const raw = localStorage.getItem(LOCAL_STORAGE_USERS_DB);
   if (!raw) {
     const initialList = [MASTER_ADMIN];
@@ -54,7 +54,6 @@ function getStoredUsers(): UserProfile[] {
   }
   try {
     const list: UserProfile[] = JSON.parse(raw);
-    // Garante que o Emerson esteja sempre na lista com status aprovado
     if (!list.some(u => u.email.toLowerCase() === MASTER_ADMIN.email.toLowerCase())) {
       list.unshift(MASTER_ADMIN);
       localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(list));
@@ -65,7 +64,7 @@ function getStoredUsers(): UserProfile[] {
   }
 }
 
-function saveStoredUsers(users: UserProfile[]) {
+function saveLocalUsers(users: UserProfile[]) {
   localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(users));
 }
 
@@ -74,17 +73,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
 
-  // Inicializa sessão
+  // Carrega e sincroniza usuários (Supabase + Local)
+  const syncUsers = async () => {
+    const supabase = getSupabaseClient();
+    let users = getLocalUsers();
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          users = data as UserProfile[];
+          // Garante que o Emerson esteja sempre com a role super_admin
+          if (!users.some(u => u.email.toLowerCase() === MASTER_ADMIN.email.toLowerCase())) {
+            users.unshift(MASTER_ADMIN);
+          }
+          saveLocalUsers(users);
+        }
+      } catch (err) {
+        console.warn('Erro ao sincronizar admin_users do Supabase:', err);
+      }
+    }
+
+    setAllUsers(users);
+    return users;
+  };
+
   useEffect(() => {
-    function initAuth() {
-      const users = getStoredUsers();
-      setAllUsers(users);
+    async function initAuth() {
+      const users = await syncUsers();
 
       const savedSession = localStorage.getItem(LOCAL_STORAGE_SESSION_KEY);
       if (savedSession) {
         try {
           const parsed = JSON.parse(savedSession);
-          // Valida se o usuário ainda existe e está aprovado
           const current = users.find(u => u.id === parsed.id || u.email.toLowerCase() === parsed.email.toLowerCase());
           if (current && (current.status === 'approved' || current.role === 'super_admin')) {
             setUser(current);
@@ -97,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
         }
       } else {
-        setUser(null); // Deslogado por padrão para proteger as rotas
+        setUser(null);
       }
 
       setLoading(false);
@@ -114,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    // 1. Verificação do Super Admin (Emerson)
+    // 1. Super Admin Emerson (sempre garantido)
     if (cleanEmail === MASTER_ADMIN.email.toLowerCase() && cleanPassword === MASTER_ADMIN.password) {
       setUser(MASTER_ADMIN);
       localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(MASTER_ADMIN));
@@ -122,9 +147,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     }
 
-    // 2. Verificação de outros usuários cadastrados
-    const users = getStoredUsers();
-    const found = users.find(u => u.email.toLowerCase() === cleanEmail);
+    // 2. Consulta no Supabase ou Local
+    const supabase = getSupabaseClient();
+    let found: UserProfile | undefined;
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (!error && data) {
+          found = data as UserProfile;
+        }
+      } catch (e) {
+        console.warn('Falha ao consultar admin_users no Supabase:', e);
+      }
+    }
+
+    if (!found) {
+      const users = getLocalUsers();
+      found = users.find(u => u.email.toLowerCase() === cleanEmail);
+    }
 
     if (!found) {
       setLoading(false);
@@ -141,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return {
         success: false,
-        error: '⏳ Sua conta foi criada e está aguardando aprovação do administrador principal (Emerson). Você terá acesso assim que for aprovado.',
+        error: '⏳ Sua conta foi criada e está aguardando aprovação do administrador principal (Emerson). Tente novamente assim que seu acesso for liberado.',
       };
     }
 
@@ -149,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return {
         success: false,
-        error: '⛔ Acesso revogado ou recusado pelo administrador da plataforma.',
+        error: '⛔ Acesso negado ou revogado pelo administrador.',
       };
     }
 
@@ -175,7 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Este e-mail pertence ao administrador principal.' };
     }
 
-    const users = getStoredUsers();
+    const users = getLocalUsers();
     if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
       setLoading(false);
       return { success: false, error: 'Este e-mail já está cadastrado no sistema.' };
@@ -187,18 +233,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: cleanEmail,
       password: cleanPassword,
       role: 'admin',
-      status: 'pending', // Fica pendente aguardando aprovação de Emerson!
+      status: 'pending', // Fica pendente aguardando Emerson aprovar!
       created_at: new Date().toISOString(),
     };
 
-    const updated = [...users, newUser];
-    saveStoredUsers(updated);
+    // Salva no Supabase se disponível
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('admin_users').insert(newUser);
+        if (error) {
+          console.error('Erro ao salvar usuário no Supabase:', error.message);
+        }
+      } catch (err) {
+        console.warn('Falha ao inserir em admin_users no Supabase:', err);
+      }
+    }
+
+    // Atualiza localmente
+    const updated = [newUser, ...users];
+    saveLocalUsers(updated);
     setAllUsers(updated);
 
     setLoading(false);
     return {
       success: true,
-      message: '✅ Conta criada com sucesso! Como medida de segurança, o acesso precisa ser aprovado pelo Emerson. Tente fazer login assim que for liberado.',
+      message: '✅ Cadastro realizado com sucesso! Como medida de segurança, o seu acesso precisa ser aprovado pelo administrador Emerson.',
     };
   };
 
@@ -209,27 +269,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Funções exclusivas do Super Admin (Emerson)
   const getRegisteredUsers = () => {
-    const list = getStoredUsers();
-    setAllUsers(list);
-    return list;
+    syncUsers();
+    return allUsers.length > 0 ? allUsers : getLocalUsers();
   };
 
-  const approveUser = (userId: string) => {
-    const list = getStoredUsers().map(u => (u.id === userId ? { ...u, status: 'approved' as UserStatus } : u));
-    saveStoredUsers(list);
+  const approveUser = async (userId: string) => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('admin_users').update({ status: 'approved' }).eq('id', userId);
+      } catch (e) {
+        console.warn('Erro ao aprovar no Supabase:', e);
+      }
+    }
+
+    const list = getLocalUsers().map(u => (u.id === userId ? { ...u, status: 'approved' as UserStatus } : u));
+    saveLocalUsers(list);
     setAllUsers(list);
   };
 
-  const rejectUser = (userId: string) => {
-    const list = getStoredUsers().map(u => (u.id === userId ? { ...u, status: 'rejected' as UserStatus } : u));
-    saveStoredUsers(list);
+  const rejectUser = async (userId: string) => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('admin_users').update({ status: 'rejected' }).eq('id', userId);
+      } catch (e) {
+        console.warn('Erro ao rejeitar no Supabase:', e);
+      }
+    }
+
+    const list = getLocalUsers().map(u => (u.id === userId ? { ...u, status: 'rejected' as UserStatus } : u));
+    saveLocalUsers(list);
     setAllUsers(list);
   };
 
-  const deleteUser = (userId: string) => {
-    // Não permite deletar o master admin
-    const list = getStoredUsers().filter(u => u.id !== userId && u.email !== MASTER_ADMIN.email);
-    saveStoredUsers(list);
+  const deleteUser = async (userId: string) => {
+    if (userId === MASTER_ADMIN.id) return;
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('admin_users').delete().eq('id', userId);
+      } catch (e) {
+        console.warn('Erro ao deletar no Supabase:', e);
+      }
+    }
+
+    const list = getLocalUsers().filter(u => u.id !== userId && u.email !== MASTER_ADMIN.email);
+    saveLocalUsers(list);
     setAllUsers(list);
   };
 
