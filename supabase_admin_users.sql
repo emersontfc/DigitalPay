@@ -47,3 +47,4 @@ VALUES (
     role = 'super_admin',
     status = 'approved',
     password = '112212';
+

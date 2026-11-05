@@ -79,13 +79,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('emersontorres42@gmail.com');
-    setPassword('112212');
-    setIsRegister(false);
-    setError(null);
-  };
-
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-slate-950 relative overflow-hidden">
       {/* Glow de fundo */}
@@ -259,19 +252,6 @@ export const LoginPage: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Dica de Acesso Rápido para Teste */}
-          {!isRegister && (
-            <div className="pt-4 border-t border-slate-800/80 text-center">
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4"
-              >
-                ⚡ Preencher conta Super Admin (emersontorres42@gmail.com / 112212)
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Rodapé de Segurança */}
