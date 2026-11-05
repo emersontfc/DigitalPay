@@ -39,3 +39,4 @@ export interface IAIProvider {
   generatePage(params: GeneratePagePromptParams, apiKey?: string, model?: string): Promise<PageSchema>;
   editPage(params: EditPageInstructionParams, apiKey?: string, model?: string): Promise<PageEditResult>;
 }
+

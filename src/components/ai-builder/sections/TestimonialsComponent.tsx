@@ -88,3 +88,4 @@ export const TestimonialsComponent: React.FC<Props> = ({ section, theme }) => {
     </div>
   );
 };
+

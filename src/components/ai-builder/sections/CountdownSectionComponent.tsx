@@ -23,3 +23,4 @@ export const CountdownSectionComponent: React.FC<Props> = ({ section, theme }) =
     </div>
   );
 };
+

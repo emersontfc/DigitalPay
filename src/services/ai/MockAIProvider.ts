@@ -383,3 +383,4 @@ export class MockAIProvider implements IAIProvider {
     return match ? match[0] : null;
   }
 }
+

@@ -77,3 +77,4 @@ ON public.ai_configurations
 FOR ALL
 USING (true)
 WITH CHECK (true);
+

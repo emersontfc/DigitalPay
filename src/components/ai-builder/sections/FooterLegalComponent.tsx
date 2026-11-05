@@ -29,3 +29,4 @@ export const FooterLegalComponent: React.FC<Props> = ({ section, theme, productT
     </footer>
   );
 };
+

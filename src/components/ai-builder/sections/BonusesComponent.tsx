@@ -86,3 +86,4 @@ export const BonusesComponent: React.FC<Props> = ({ section, theme, currency }) 
     </div>
   );
 };
+

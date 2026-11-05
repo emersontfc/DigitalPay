@@ -16,7 +16,8 @@ import {
   ChevronRight,
   UserCheck,
   Lock,
-  ShoppingBag
+  ShoppingBag,
+  Wand2
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -47,22 +48,30 @@ export const HomePage: React.FC = () => {
             <BrandLogo linkTo="/" size="md" variant="neon" />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to={user ? "/admin/ai-builder" : "/login"}
+              className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200 animate-pulse" />
+              <span>AI Page Builder</span>
+            </Link>
+
             {user ? (
               <Link
                 to="/admin"
-                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2"
               >
                 <LayoutDashboard className="w-4 h-4" />
-                <span>Painel ({user.name.split(' ')[0]})</span>
+                <span>Painel</span>
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors flex items-center gap-2"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors flex items-center gap-2"
               >
                 <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Área do Administrador</span>
+                <span>Login</span>
               </Link>
             )}
           </div>
@@ -92,19 +101,27 @@ export const HomePage: React.FC = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              to={user ? "/admin/ai-builder/new" : "/login"}
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 hover:opacity-95 text-slate-950 transition-all shadow-[0_0_30px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Wand2 className="w-5 h-5 stroke-[2.5]" />
+              <span>Criar Página com IA</span>
+            </Link>
+
             <a
               href="#vitrine"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-4 rounded-2xl text-base font-bold bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors flex items-center justify-center gap-2"
             >
-              <ShoppingBag className="w-5 h-5" />
-              <span>Ver Páginas de Vendas Ativas</span>
+              <ShoppingBag className="w-5 h-5 text-emerald-400" />
+              <span>Ver Vitrine Ativa</span>
             </a>
 
             <Link
               to={user ? '/admin' : '/login'}
               className="w-full sm:w-auto px-6 py-4 rounded-2xl text-base font-bold bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors flex items-center justify-center gap-2"
             >
-              <Lock className="w-4 h-4 text-emerald-400" />
+              <Lock className="w-4 h-4 text-slate-400" />
               <span>{user ? 'Acessar Meu Painel' : 'Login de Administrador'}</span>
             </Link>
           </div>

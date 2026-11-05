@@ -456,14 +456,23 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                         </p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsModelModalOpen(true)}
-                      className="px-4 py-2 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer"
-                    >
-                      <Bookmark className="w-3.5 h-3.5" />
-                      <span>Explorar Modelos</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href="/admin/ai-builder/new"
+                        className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 text-white transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Criar com IA</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setIsModelModalOpen(true)}
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer border border-purple-500/30"
+                      >
+                        <Bookmark className="w-3.5 h-3.5" />
+                        <span>Modelos Prontos</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

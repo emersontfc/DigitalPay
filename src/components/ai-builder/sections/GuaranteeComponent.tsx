@@ -46,3 +46,4 @@ export const GuaranteeComponent: React.FC<Props> = ({ section, theme }) => {
     </div>
   );
 };
+

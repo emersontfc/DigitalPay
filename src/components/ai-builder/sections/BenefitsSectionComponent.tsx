@@ -77,3 +77,4 @@ export const BenefitsSectionComponent: React.FC<Props> = ({ section, theme }) =>
     </div>
   );
 };
+

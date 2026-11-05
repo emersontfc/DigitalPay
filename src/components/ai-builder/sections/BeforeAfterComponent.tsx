@@ -79,3 +79,4 @@ export const BeforeAfterComponent: React.FC<Props> = ({ section, theme }) => {
     </div>
   );
 };
+

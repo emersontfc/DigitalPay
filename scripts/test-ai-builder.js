@@ -190,3 +190,4 @@ const legacyProduct = {
 assert(Boolean(legacyProduct.slug) && legacyProduct.template === 'kiwify-neon', '14. Garantir que páginas existentes continuam funcionais');
 
 console.log(`\n🎉 RESULTADO: ${passedTests}/${totalTests} TESTES EXECUTADOS COM SUCESSO!`);
+

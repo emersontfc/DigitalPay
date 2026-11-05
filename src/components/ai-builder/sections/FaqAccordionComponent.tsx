@@ -93,3 +93,4 @@ export const FaqAccordionComponent: React.FC<Props> = ({ section, theme }) => {
     </div>
   );
 };
+

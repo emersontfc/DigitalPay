@@ -111,3 +111,4 @@ export const CurriculumModulesComponent: React.FC<Props> = ({ section, theme }) 
     </div>
   );
 };
+

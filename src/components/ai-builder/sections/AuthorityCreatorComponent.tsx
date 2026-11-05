@@ -67,3 +67,4 @@ export const AuthorityCreatorComponent: React.FC<Props> = ({ section, theme }) =
     </div>
   );
 };
+
