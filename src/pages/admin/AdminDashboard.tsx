@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../../types';
+import { Product, PageModel } from '../../types';
 import {
   fetchProducts,
   saveProduct,
@@ -11,6 +11,7 @@ import { formatPrice } from '../../utils/currency';
 import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
+import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
 import {
   Plus,
   Search,
@@ -27,7 +28,8 @@ import {
   LogOut,
   Settings,
   UserCheck,
-  Users
+  Users,
+  Bookmark
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -44,10 +46,44 @@ export const AdminDashboard: React.FC = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
 
   // Status Supabase
   const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConfigured());
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  const handleApplyModelFromDashboard = (model: PageModel) => {
+    const d = model.productData;
+    setEditingProduct({
+      id: '',
+      name: d.name || model.name,
+      slug: (d.name || model.name).toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
+      status: 'active',
+      template: model.template,
+      currency: d.currency || 'BRL',
+      headline: d.headline || '',
+      subheadline: d.subheadline || '',
+      hero_type: d.hero_type || 'video',
+      hero_media_url: d.hero_media_url || '',
+      badge_text: d.badge_text || 'OFERTA EXCLUSIVA',
+      original_price: d.original_price || 197,
+      promo_price: d.promo_price || 97,
+      installments_text: d.installments_text || 'ou 12x no cartão',
+      cta_text: d.cta_text || 'QUERO GARANTIR MINHA VAGA AGORA',
+      cta_url: d.cta_url || 'https://pay.kiwify.com.br',
+      cta_subtext: d.cta_subtext || '🔒 Compra 100% Segura • Acesso Imediato',
+      guarantee_days: d.guarantee_days || 7,
+      countdown_enabled: d.countdown_enabled !== undefined ? d.countdown_enabled : true,
+      countdown_minutes: d.countdown_minutes || 15,
+      features: d.features || [],
+      modules: d.modules || [],
+      testimonials: d.testimonials || [],
+      faqs: d.faqs || [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    setIsEditorOpen(true);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -150,6 +186,16 @@ export const AdminDashboard: React.FC = () => {
               <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
               <span>Ver Vitrine Geral</span>
             </Link>
+
+            {/* Biblioteca de Modelos */}
+            <button
+              onClick={() => setIsModelModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 transition-all border border-purple-500/30 flex items-center gap-1.5 cursor-pointer"
+              title="Biblioteca de Modelos Prontos e Personalizados"
+            >
+              <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+              <span>Modelos & Templates</span>
+            </button>
 
             {/* Botão Novo Produto */}
             <button
@@ -501,6 +547,15 @@ export const AdminDashboard: React.FC = () => {
         <AdminUsersModal
           isOpen={isUsersModalOpen}
           onClose={() => setIsUsersModalOpen(false)}
+        />
+      )}
+
+      {isModelModalOpen && (
+        <ModelManagerModal
+          isOpen={isModelModalOpen}
+          onClose={() => setIsModelModalOpen(false)}
+          onApplyModel={handleApplyModelFromDashboard}
+          currentProductData={{}}
         />
       )}
     </div>

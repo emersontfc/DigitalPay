@@ -56,8 +56,23 @@ export interface Product {
   testimonials: Testimonial[];
   faqs: FaqItem[];
   
+  // Extras opcionais de alta conversão
+  whatsapp_number?: string;
+  whatsapp_message?: string;
+  facebook_pixel_id?: string;
+  
   created_at: string;
   updated_at: string;
+}
+
+export interface PageModel {
+  id: string;
+  name: string;
+  description: string;
+  category: 'vsl' | 'ebook' | 'mentoria' | 'comunidade' | 'personalizado';
+  template: TemplateType;
+  productData: Partial<Product>;
+  created_at: string;
 }
 
 export interface TemplateDefinition {

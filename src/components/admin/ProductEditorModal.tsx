@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Product, TemplateType, ModuleItem, Testimonial, FaqItem } from '../../types';
+import { Product, TemplateType, ModuleItem, Testimonial, FaqItem, PageModel } from '../../types';
 import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
+import { ModelManagerModal } from './ModelManagerModal';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import {
   X,
@@ -15,7 +16,11 @@ import {
   Layers,
   HelpCircle,
   Video,
-  Coins
+  Coins,
+  Check,
+  Bookmark,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -33,6 +38,9 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'faq' | 'preview'>('geral');
   const [loading, setLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
 
   // Form states
   const [name, setName] = useState(product?.name || '');
@@ -196,48 +204,98 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     updated_at: new Date().toISOString(),
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleApplyModel = (model: PageModel) => {
+    const d = model.productData;
+    if (d.template) setTemplate(d.template);
+    if (d.headline) setHeadline(d.headline);
+    if (d.subheadline !== undefined) setSubheadline(d.subheadline);
+    if (d.badge_text) setBadgeText(d.badge_text);
+    if (d.hero_type) setHeroType(d.hero_type);
+    if (d.hero_media_url) setHeroMediaUrl(d.hero_media_url);
+    if (d.currency) setCurrency(d.currency);
+    if (d.original_price !== undefined) setOriginalPrice(d.original_price);
+    if (d.promo_price !== undefined) setPromoPrice(d.promo_price);
+    if (d.installments_text) setInstallmentsText(d.installments_text);
+    if (d.cta_text) setCtaText(d.cta_text);
+    if (d.cta_url) setCtaUrl(d.cta_url);
+    if (d.cta_subtext) setCtaSubtext(d.cta_subtext);
+    if (d.guarantee_days !== undefined) setGuaranteeDays(d.guarantee_days);
+    if (d.countdown_enabled !== undefined) setCountdownEnabled(d.countdown_enabled);
+    if (d.countdown_minutes !== undefined) setCountdownMinutes(d.countdown_minutes);
+    if (d.features) setFeatures([...d.features]);
+    if (d.modules) setModules([...d.modules]);
+    if (d.testimonials) setTestimonials([...d.testimonials]);
+    if (d.faqs) setFaqs([...d.faqs]);
+  };
 
+  const handleManualSave = async () => {
+    setErrorMessage(null);
+
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setActiveTab('geral');
+      setErrorMessage('Por favor, informe o Nome do Produto na aba "1. Geral & Template" antes de gravar.');
+      return;
+    }
+
+    setLoading(true);
     try {
+      const generatedSlug = (slug || cleanName)
+        .toLowerCase()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
       await onSave({
         id: product?.id,
-        name,
-        slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        name: cleanName,
+        slug: generatedSlug,
         status,
         template,
         currency,
-        headline,
-        subheadline,
+        headline: headline.trim() || cleanName,
+        subheadline: subheadline.trim(),
         hero_type: heroType,
-        hero_media_url: heroMediaUrl,
-        badge_text: badgeText,
-        original_price: Number(originalPrice),
-        promo_price: Number(promoPrice),
-        installments_text: installmentsText,
-        cta_text: ctaText,
-        cta_url: ctaUrl,
-        cta_subtext: ctaSubtext,
-        guarantee_days: Number(guaranteeDays),
+        hero_media_url: heroMediaUrl.trim(),
+        badge_text: badgeText.trim(),
+        original_price: Number(originalPrice) || 0,
+        promo_price: Number(promoPrice) || 0,
+        installments_text: installmentsText.trim(),
+        cta_text: ctaText.trim() || 'QUERO GARANTIR MINHA VAGA AGORA',
+        cta_url: ctaUrl.trim() || 'https://pay.kiwify.com.br',
+        cta_subtext: ctaSubtext.trim(),
+        guarantee_days: Number(guaranteeDays) || 7,
         countdown_enabled: countdownEnabled,
-        countdown_minutes: Number(countdownMinutes),
-        features: features.filter(Boolean),
+        countdown_minutes: Number(countdownMinutes) || 15,
+        features: features.filter((f) => f.trim().length > 0),
         modules,
         testimonials,
         faqs,
       });
-      onClose();
-    } catch (err) {
-      console.error('Erro ao salvar produto:', err);
+
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Erro ao gravar produto:', err);
+      setErrorMessage(err?.message || 'Falha ao gravar página no banco de dados. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleManualSave();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col h-[94vh] overflow-hidden">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col h-[94vh] overflow-hidden relative">
         {/* Header Modal */}
         <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -255,9 +313,22 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Botão Biblioteca de Modelos */}
             <button
+              type="button"
+              onClick={() => setIsModelModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Carregar modelos prontos de alta conversão ou salvar o seu modelo"
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Modelos & Templates</span>
+            </button>
+
+            {/* Pré-visualizar Página */}
+            <button
+              type="button"
               onClick={() => setActiveTab(activeTab === 'preview' ? 'geral' : 'preview')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'preview'
                   ? 'bg-emerald-500 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                   : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
@@ -267,7 +338,29 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               <span>{activeTab === 'preview' ? 'Voltar ao Editor' : 'Pré-visualizar Página'}</span>
             </button>
 
+            {/* Botão Gravar Rápido no Topo */}
             <button
+              type="button"
+              onClick={handleManualSave}
+              disabled={loading}
+              className={`px-4 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 ${
+                saveSuccess
+                  ? 'bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+              }`}
+            >
+              {loading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : saveSuccess ? (
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>{loading ? 'Gravando...' : saveSuccess ? 'Gravado!' : 'Gravar Página'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
@@ -275,6 +368,24 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Feedback de Erro ou Sucesso */}
+        {errorMessage && (
+          <div className="mx-6 mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button type="button" onClick={() => setErrorMessage(null)} className="text-slate-400 hover:text-white">✕</button>
+          </div>
+        )}
+
+        {saveSuccess && (
+          <div className="mx-6 mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+            <Check className="w-4 h-4 stroke-[3]" />
+            <span>Página gravada com sucesso! Atualizando catálogo...</span>
+          </div>
+        )}
 
         {/* Tab Navigation (quando não estiver no preview) */}
         {activeTab !== 'preview' && (
@@ -327,6 +438,34 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               {/* TAB 1: GERAL & TEMPLATE */}
               {activeTab === 'geral' && (
                 <div className="space-y-6">
+                  {/* Banner de Modelos Rápidos */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 to-slate-900 border border-purple-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          Biblioteca de Modelos & Presets de Venda
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold uppercase">
+                            Novo Recurso
+                          </span>
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          Carregue modelos prontos (VSL, E-book/PLR, Mentoria High Ticket) ou aplique seus modelos salvos com 1 clique.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsModelModalOpen(true)}
+                      className="px-4 py-2 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer"
+                    >
+                      <Bookmark className="w-3.5 h-3.5" />
+                      <span>Explorar Modelos</span>
+                    </button>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
@@ -884,27 +1023,62 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
             Cancelar
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setIsModelModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Modelos & Templates</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setActiveTab(activeTab === 'preview' ? 'geral' : 'preview')}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-3.5 h-3.5" />
               <span>{activeTab === 'preview' ? 'Editar Campos' : 'Ver Prévia'}</span>
             </button>
 
             <button
-              type="submit"
-              form="product-form"
+              type="button"
+              onClick={handleManualSave}
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 ${
+                saveSuccess
+                  ? 'bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.5)]'
+                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]'
+              }`}
             >
-              <Save className="w-4 h-4" />
-              <span>{loading ? 'Salvando...' : 'Salvar Página de Vendas'}</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Gravando Página...</span>
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Página Gravada com Sucesso!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Gravar Página de Vendas</span>
+                </>
+              )}
             </button>
           </div>
         </div>
+
+        {/* Modal de Gerenciamento de Modelos */}
+        <ModelManagerModal
+          isOpen={isModelModalOpen}
+          onClose={() => setIsModelModalOpen(false)}
+          onApplyModel={handleApplyModel}
+          currentProductData={currentPreviewProduct}
+        />
       </div>
     </div>
   );
