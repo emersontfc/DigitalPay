@@ -12,6 +12,8 @@ import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
+import { AISettingsModal } from '../../components/admin/AISettingsModal';
+import { aiOrchestrator } from '../../services/ai/aiOrchestrator';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Plus,
@@ -32,7 +34,8 @@ import {
   Users,
   Bookmark,
   Wand2,
-  ArrowRight
+  ArrowRight,
+  Key
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -50,6 +53,8 @@ export const AdminDashboard: React.FC = () => {
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
+  const [aiStatus, setAiStatus] = useState(() => aiOrchestrator.getStatus());
 
   // Status Supabase
   const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConfigured());
@@ -157,53 +162,84 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
-      {/* 1. Header do Painel */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <Link to="/admin" className="flex items-center gap-2.5 group">
-              <BrandLogo size="md" variant="neon" showText={false} />
-              <div>
-                <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
-                  Digitall<span className="text-emerald-400">Pay</span>
-                </span>
-                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
-                  Painel de Administração
-                </span>
+      {/* 1. Header do Painel Responsivo */}
+      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Linha 1: Marca + Identidade do Usuário + Ações de Sessão */}
+          <div className="py-3 flex items-center justify-between gap-3">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <Link to="/admin" className="flex items-center gap-2.5 group">
+                <BrandLogo size="md" variant="neon" showText={false} />
+                <div>
+                  <span className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-1">
+                    Digitall<span className="text-emerald-400">Pay</span>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 ml-1">
+                      Admin
+                    </span>
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
+                    Painel de Administração
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Lado Direito da Linha 1: Status DB, Config IA Rápida, Perfil e Sair */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Botão Chave de IA (Super Admin / Admin) */}
+              <button
+                onClick={() => setIsAISettingsOpen(true)}
+                title="Configurar Chave e Provedores de IA"
+                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Key className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">Chave de IA</span>
+                <span className={`w-2 h-2 rounded-full ${aiStatus.isConfigured ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} title={`Motor ativo: ${aiStatus.providerName}`} />
+              </button>
+
+              {/* Configuração Discreta do Banco */}
+              <button
+                onClick={() => setIsSupabaseModalOpen(true)}
+                title={supabaseConnected ? 'Banco de Dados Conectado' : 'Configurações de Banco de Dados'}
+                className="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+
+              {/* Perfil do Usuário & Logout */}
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/30">
+                  {user?.name?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div className="hidden md:block text-left text-xs">
+                  <div className="font-bold text-white truncate max-w-[120px]">{user?.name}</div>
+                  <div className="text-[10px] text-slate-400 truncate max-w-[120px]">{user?.email}</div>
+                </div>
+                <button
+                  onClick={logout}
+                  title="Sair da Conta"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-            </Link>
+            </div>
           </div>
 
-          {/* Ações Topo */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Ver Catálogo Público */}
-            <Link
-              to="/"
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5"
-            >
-              <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
-              <span>Ver Vitrine Geral</span>
-            </Link>
-
+          {/* Linha 2: Barra de Ações Responsiva (Scroll horizontal suave no mobile sem quebra feia) */}
+          <div className="py-2.5 border-t border-slate-800/70 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
             {/* AI Page Builder */}
             <Link
               to="/admin/ai-builder"
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center gap-1.5"
+              className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center gap-1.5 shrink-0"
             >
-              <Sparkles className="w-4 h-4 text-purple-200 animate-pulse" />
+              <Sparkles className="w-3.5 h-3.5 text-purple-200 animate-pulse" />
               <span>AI Page Builder</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[9px] uppercase font-black">
+                Novo
+              </span>
             </Link>
-
-            {/* Biblioteca de Modelos */}
-            <button
-              onClick={() => setIsModelModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 transition-all border border-purple-500/30 flex items-center gap-1.5 cursor-pointer"
-              title="Biblioteca de Modelos Prontos e Personalizados"
-            >
-              <Bookmark className="w-3.5 h-3.5 text-purple-400" />
-              <span>Modelos & Templates</span>
-            </button>
 
             {/* Botão Novo Produto */}
             <button
@@ -211,54 +247,45 @@ export const AdminDashboard: React.FC = () => {
                 setEditingProduct(null);
                 setIsEditorOpen(true);
               }}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2 cursor-pointer"
+              className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-1.5 shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Criar Nova Página</span>
+            </button>
+
+            {/* Biblioteca de Modelos */}
+            <button
+              onClick={() => setIsModelModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition-all border border-slate-700/60 flex items-center gap-1.5 shrink-0 cursor-pointer"
+            >
+              <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+              <span>Modelos & Templates</span>
             </button>
 
             {/* Gestão de Administradores (Exclusivo Emerson) */}
             {(user?.role === 'super_admin' || user?.email === 'emersontorres42@gmail.com') && (
               <button
                 onClick={() => setIsUsersModalOpen(true)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 border border-slate-700/60"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5 border border-slate-700/60 shrink-0 cursor-pointer"
               >
                 <Users className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Aprovações</span>
                 {pendingCount > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black animate-pulse">
-                    {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+                    {pendingCount}
                   </span>
                 )}
               </button>
             )}
 
-            {/* Configuração Discreta do Banco */}
-            <button
-              onClick={() => setIsSupabaseModalOpen(true)}
-              title={supabaseConnected ? 'Banco de Dados Conectado' : 'Configurações de Banco de Dados'}
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            {/* Ver Vitrine Geral */}
+            <Link
+              to="/"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-300 transition-colors flex items-center gap-1.5 shrink-0 ml-auto"
             >
-              <Settings className="w-4 h-4" />
-            </button>
-
-            {/* Perfil do Usuário & Logout */}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-800">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/30">
-                {user?.name?.charAt(0).toUpperCase() || 'A'}
-              </div>
-              <div className="hidden sm:block text-left text-xs">
-                <div className="font-bold text-white truncate max-w-[130px]">{user?.name}</div>
-                <div className="text-[10px] text-slate-400 truncate max-w-[130px]">{user?.email}</div>
-              </div>
-              <button
-                onClick={logout}
-                title="Sair da Conta"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+              <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
+              <span>Ver Vitrine</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -313,10 +340,14 @@ export const AdminDashboard: React.FC = () => {
               <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white flex items-center gap-2">
-                DigitalPay AI Page Builder
+              <h3 className="text-base font-black text-white flex flex-wrap items-center gap-2">
+                <span>DigitalPay AI Page Builder</span>
                 <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
                   Novo
+                </span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.isConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  <span>Motor: {aiStatus.providerName}</span>
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -325,14 +356,25 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          <Link
-            to="/admin/ai-builder"
-            className="w-full md:w-auto px-5 py-2.5 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-md cursor-pointer"
-          >
-            <Wand2 className="w-3.5 h-3.5" />
-            <span>Acessar AI Builder</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+            <button
+              onClick={() => setIsAISettingsOpen(true)}
+              className="flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-purple-300 border border-purple-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              title="Configurar Chave de API da IA"
+            >
+              <Key className="w-3.5 h-3.5 text-purple-400" />
+              <span>Configurar IA</span>
+            </button>
+
+            <Link
+              to="/admin/ai-builder"
+              className="flex-1 md:flex-initial px-5 py-2.5 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-md cursor-pointer"
+            >
+              <Wand2 className="w-3.5 h-3.5" />
+              <span>Acessar AI Builder</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
         {/* 3. Filtros & Busca */}
@@ -593,6 +635,19 @@ export const AdminDashboard: React.FC = () => {
           onClose={() => setIsModelModalOpen(false)}
           onApplyModel={handleApplyModelFromDashboard}
           currentProductData={{}}
+        />
+      )}
+
+      {isAISettingsOpen && (
+        <AISettingsModal
+          isOpen={isAISettingsOpen}
+          onClose={() => {
+            setIsAISettingsOpen(false);
+            setAiStatus(aiOrchestrator.getStatus());
+          }}
+          onSaved={() => {
+            setAiStatus(aiOrchestrator.getStatus());
+          }}
         />
       )}
     </div>

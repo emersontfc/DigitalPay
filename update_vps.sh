@@ -27,3 +27,4 @@ echo "=========================================================="
 echo "🎉 Digitall Pay e AI Builder atualizados com sucesso!"
 echo "Acesse: https://digitallpay.store/admin"
 echo "=========================================================="
+

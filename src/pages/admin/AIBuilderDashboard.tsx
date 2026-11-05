@@ -22,7 +22,8 @@ import {
   Layers,
   Wand2,
   Check,
-  CheckCircle2
+  CheckCircle2,
+  Key
 } from 'lucide-react';
 
 export const AIBuilderDashboard: React.FC = () => {
@@ -123,10 +124,11 @@ export const AIBuilderDashboard: React.FC = () => {
 
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
             title="Configurações de Provedores de IA (Mistral, OpenAI)"
           >
-            <Sliders className="w-4 h-4" />
+            <Key className="w-3.5 h-3.5 text-purple-400" />
+            <span className="hidden sm:inline">Chave de IA</span>
           </button>
 
           <Link
@@ -157,9 +159,17 @@ export const AIBuilderDashboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-full sm:w-auto px-4 py-3 rounded-2xl text-xs font-bold bg-slate-900/90 hover:bg-slate-800 text-purple-300 border border-purple-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Key className="w-4 h-4 text-purple-400" />
+              <span>Configurar Chave de IA</span>
+            </button>
+
             <Link
               to="/admin/ai-builder/new"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl text-xs sm:text-sm font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg"
             >
               <Wand2 className="w-4 h-4" />
               <span>Criar Nova Página com IA</span>

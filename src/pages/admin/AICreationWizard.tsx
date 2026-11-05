@@ -4,6 +4,7 @@ import { aiOrchestrator } from '../../services/ai/aiOrchestrator';
 import { saveAIPage } from '../../services/ai/aiPageStorage';
 import { PageSchema, ThemePreset } from '../../types/aiBuilder';
 import { BrandLogo } from '../../components/common/BrandLogo';
+import { AISettingsModal } from '../../components/admin/AISettingsModal';
 import {
   Sparkles,
   ArrowRight,
@@ -16,13 +17,16 @@ import {
   Loader2,
   Eye,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Key
 } from 'lucide-react';
 
 export const AICreationWizard: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [aiStatus, setAiStatus] = useState(() => aiOrchestrator.getStatus());
 
   // Form states
   const [prompt, setPrompt] = useState(
@@ -100,12 +104,26 @@ export const AICreationWizard: React.FC = () => {
           </div>
         </div>
 
-        <Link
-          to="/admin"
-          className="text-xs text-slate-400 hover:text-white font-semibold transition-colors"
-        >
-          Voltar ao Painel
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Alterar Chave ou Motor de IA"
+          >
+            <Key className="w-3.5 h-3.5 text-purple-400" />
+            <span className="hidden sm:inline">Motor:</span>
+            <span>{aiStatus.providerName}</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.isConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+          </button>
+
+          <Link
+            to="/admin"
+            className="text-xs text-slate-400 hover:text-white font-semibold transition-colors"
+          >
+            Voltar
+          </Link>
+        </div>
       </header>
 
       {/* Main Container */}
@@ -310,6 +328,19 @@ export const AICreationWizard: React.FC = () => {
           </form>
         </div>
       </main>
+
+      {isSettingsOpen && (
+        <AISettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => {
+            setIsSettingsOpen(false);
+            setAiStatus(aiOrchestrator.getStatus());
+          }}
+          onSaved={() => {
+            setAiStatus(aiOrchestrator.getStatus());
+          }}
+        />
+      )}
     </div>
   );
 };
