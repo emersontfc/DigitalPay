@@ -30,9 +30,12 @@ export const LoginPage: React.FC = () => {
 
   const from = (location.state as any)?.from?.pathname || '/admin';
 
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     setLoading(true);
 
     if (isRegister) {
@@ -59,7 +62,11 @@ export const LoginPage: React.FC = () => {
         return;
       }
 
-      navigate(from, { replace: true });
+      setSuccessMsg(res.message || 'Cadastro realizado com sucesso! Aguarde a aprovação do administrador Emerson.');
+      setIsRegister(false);
+      setPassword('');
+      setConfirmPassword('');
+      setLoading(false);
     } else {
       const res = await login(email, password);
       if (!res.success) {
@@ -73,8 +80,8 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleFillDemo = () => {
-    setEmail('admin@digitalpay.com');
-    setPassword('admin123');
+    setEmail('emersontorres42@gmail.com');
+    setPassword('112212');
     setIsRegister(false);
     setError(null);
   };
@@ -141,6 +148,14 @@ export const LoginPage: React.FC = () => {
               Criar Conta
             </button>
           </div>
+
+          {/* Alerta de sucesso */}
+          {successMsg && (
+            <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+              <span>{successMsg}</span>
+            </div>
+          )}
 
           {/* Alerta de erro */}
           {error && (
@@ -253,7 +268,7 @@ export const LoginPage: React.FC = () => {
                 onClick={handleFillDemo}
                 className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4"
               >
-                ⚡ Preencher dados de demonstração (admin@digitalpay.com / admin123)
+                ⚡ Preencher conta Super Admin (emersontorres42@gmail.com / 112212)
               </button>
             </div>
           )}

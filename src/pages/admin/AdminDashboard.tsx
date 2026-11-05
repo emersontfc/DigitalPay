@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { formatPrice } from '../../utils/currency';
 import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
+import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import {
   Plus,
   Search,
@@ -25,12 +26,13 @@ import {
   RefreshCw,
   LogOut,
   Settings,
-  UserCheck
+  UserCheck,
+  Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AdminDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, pendingCount } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,6 +43,7 @@ export const AdminDashboard: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+  const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
 
   // Status Supabase
   const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConfigured());
@@ -159,6 +162,22 @@ export const AdminDashboard: React.FC = () => {
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Criar Nova Página</span>
             </button>
+
+            {/* Gestão de Administradores (Exclusivo Emerson) */}
+            {(user?.role === 'super_admin' || user?.email === 'emersontorres42@gmail.com') && (
+              <button
+                onClick={() => setIsUsersModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 border border-slate-700/60"
+              >
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Aprovações</span>
+                {pendingCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black animate-pulse">
+                    {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* Configuração Discreta do Banco */}
             <button
@@ -475,6 +494,13 @@ export const AdminDashboard: React.FC = () => {
             setSupabaseConnected(isSupabaseConfigured());
             loadData();
           }}
+        />
+      )}
+
+      {isUsersModalOpen && (
+        <AdminUsersModal
+          isOpen={isUsersModalOpen}
+          onClose={() => setIsUsersModalOpen(false)}
         />
       )}
     </div>

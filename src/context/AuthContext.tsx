@@ -1,72 +1,103 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSupabaseClient } from '../lib/supabase';
 
+export type UserRole = 'super_admin' | 'admin';
+export type UserStatus = 'approved' | 'pending' | 'rejected';
+
 export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user';
+  role: UserRole;
+  status: UserStatus;
+  password?: string;
+  created_at: string;
 }
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; message?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string; message?: string }>;
   logout: () => Promise<void>;
+  
+  // Gestão de Aprovações (para Emerson / Super Admin)
+  getRegisteredUsers: () => UserProfile[];
+  approveUser: (userId: string) => void;
+  rejectUser: (userId: string) => void;
+  deleteUser: (userId: string) => void;
+  pendingCount: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_USER_KEY = 'digitalpay_auth_user';
-const LOCAL_STORAGE_USERS_DB = 'digitalpay_registered_users';
+const LOCAL_STORAGE_SESSION_KEY = 'digitalpay_current_session';
+const LOCAL_STORAGE_USERS_DB = 'digitalpay_users_database';
+
+// Super Admin inicial configurado
+const MASTER_ADMIN: UserProfile = {
+  id: 'master-emerson-001',
+  email: 'emersontorres42@gmail.com',
+  name: 'Emerson Torres',
+  role: 'super_admin',
+  status: 'approved',
+  password: '112212',
+  created_at: new Date().toISOString(),
+};
+
+function getStoredUsers(): UserProfile[] {
+  const raw = localStorage.getItem(LOCAL_STORAGE_USERS_DB);
+  if (!raw) {
+    const initialList = [MASTER_ADMIN];
+    localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(initialList));
+    return initialList;
+  }
+  try {
+    const list: UserProfile[] = JSON.parse(raw);
+    // Garante que o Emerson esteja sempre na lista com status aprovado
+    if (!list.some(u => u.email.toLowerCase() === MASTER_ADMIN.email.toLowerCase())) {
+      list.unshift(MASTER_ADMIN);
+      localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(list));
+    }
+    return list;
+  } catch {
+    return [MASTER_ADMIN];
+  }
+}
+
+function saveStoredUsers(users: UserProfile[]) {
+  localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(users));
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
 
   // Inicializa sessão
   useEffect(() => {
-    async function initAuth() {
-      const supabase = getSupabaseClient();
+    function initAuth() {
+      const users = getStoredUsers();
+      setAllUsers(users);
 
-      if (supabase) {
+      const savedSession = localStorage.getItem(LOCAL_STORAGE_SESSION_KEY);
+      if (savedSession) {
         try {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session?.user) {
-            const sbUser = data.session.user;
-            setUser({
-              id: sbUser.id,
-              email: sbUser.email || '',
-              name: sbUser.user_metadata?.name || sbUser.email?.split('@')[0] || 'Administrador',
-              role: 'admin',
-            });
-            setLoading(false);
-            return;
+          const parsed = JSON.parse(savedSession);
+          // Valida se o usuário ainda existe e está aprovado
+          const current = users.find(u => u.id === parsed.id || u.email.toLowerCase() === parsed.email.toLowerCase());
+          if (current && (current.status === 'approved' || current.role === 'super_admin')) {
+            setUser(current);
+          } else {
+            localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+            setUser(null);
           }
-        } catch (err) {
-          console.warn('Erro ao restaurar sessão Supabase:', err);
-        }
-      }
-
-      // Fallback local: restaura usuário do localStorage
-      const saved = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
-      if (saved) {
-        try {
-          setUser(JSON.parse(saved));
         } catch {
-          localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+          localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+          setUser(null);
         }
       } else {
-        // Usuário admin padrão pronto para teste imediato
-        const defaultAdmin: UserProfile = {
-          id: 'admin-default',
-          email: 'admin@digitalpay.com',
-          name: 'Administrador DigitalPay',
-          role: 'admin',
-        };
-        setUser(defaultAdmin);
-        localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(defaultAdmin));
+        setUser(null); // Deslogado por padrão para proteger as rotas
       }
 
       setLoading(false);
@@ -75,164 +106,150 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string; message?: string }> => {
     setLoading(true);
-    const supabase = getSupabaseClient();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
 
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-
-        if (error) {
-          setLoading(false);
-          return { success: false, error: error.message };
-        }
-
-        if (data.user) {
-          const profile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email || email,
-            name: data.user.user_metadata?.name || email.split('@')[0],
-            role: 'admin',
-          };
-          setUser(profile);
-          localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(profile));
-          setLoading(false);
-          return { success: true };
-        }
-      } catch (err: any) {
-        console.warn('Falha Supabase Auth login, tentando local:', err);
-      }
-    }
-
-    // Validação local (suporta admin@digitalpay.com ou qualquer usuário cadastrado)
-    const rawUsers = localStorage.getItem(LOCAL_STORAGE_USERS_DB);
-    let usersList: any[] = rawUsers ? JSON.parse(rawUsers) : [];
-
-    // Se for o admin padrão
-    if (email === 'admin@digitalpay.com' && (password === 'admin123' || password.length >= 6)) {
-      const profile: UserProfile = {
-        id: 'admin-default',
-        email,
-        name: 'Administrador DigitalPay',
-        role: 'admin',
-      };
-      setUser(profile);
-      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(profile));
+    // 1. Verificação do Super Admin (Emerson)
+    if (cleanEmail === MASTER_ADMIN.email.toLowerCase() && cleanPassword === MASTER_ADMIN.password) {
+      setUser(MASTER_ADMIN);
+      localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(MASTER_ADMIN));
       setLoading(false);
       return { success: true };
     }
 
-    const found = usersList.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
-    if (found && found.password === password) {
-      const profile: UserProfile = {
-        id: found.id,
-        email: found.email,
-        name: found.name,
-        role: 'admin',
-      };
-      setUser(profile);
-      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(profile));
+    // 2. Verificação de outros usuários cadastrados
+    const users = getStoredUsers();
+    const found = users.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (!found) {
       setLoading(false);
-      return { success: true };
+      return { success: false, error: 'E-mail não cadastrado na plataforma.' };
     }
 
+    if (found.password !== cleanPassword) {
+      setLoading(false);
+      return { success: false, error: 'Senha incorreta. Verifique suas credenciais.' };
+    }
+
+    // 3. Verificação de status de aprovação
+    if (found.status === 'pending') {
+      setLoading(false);
+      return {
+        success: false,
+        error: '⏳ Sua conta foi criada e está aguardando aprovação do administrador principal (Emerson). Você terá acesso assim que for aprovado.',
+      };
+    }
+
+    if (found.status === 'rejected') {
+      setLoading(false);
+      return {
+        success: false,
+        error: '⛔ Acesso revogado ou recusado pelo administrador da plataforma.',
+      };
+    }
+
+    // Aprovado
+    setUser(found);
+    localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(found));
     setLoading(false);
-    return { success: false, error: 'E-mail ou senha incorretos. (Dica de teste: admin@digitalpay.com / admin123)' };
+    return { success: true };
   };
 
   const register = async (
     name: string,
     email: string,
     password: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; message?: string }> => {
     setLoading(true);
-    const supabase = getSupabaseClient();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanPassword = password.trim();
 
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: { name: name.trim() },
-          },
-        });
-
-        if (error) {
-          setLoading(false);
-          return { success: false, error: error.message };
-        }
-
-        if (data.user) {
-          const profile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email || email,
-            name: name.trim(),
-            role: 'admin',
-          };
-          setUser(profile);
-          localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(profile));
-          setLoading(false);
-          return { success: true };
-        }
-      } catch (err: any) {
-        console.warn('Falha Supabase Auth cadastro, salvando localmente:', err);
-      }
-    }
-
-    // Cadastro no armazenamento local
-    const rawUsers = localStorage.getItem(LOCAL_STORAGE_USERS_DB);
-    let usersList: any[] = rawUsers ? JSON.parse(rawUsers) : [];
-
-    if (usersList.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
+    if (cleanEmail === MASTER_ADMIN.email.toLowerCase()) {
       setLoading(false);
-      return { success: false, error: 'Este e-mail já está cadastrado na plataforma.' };
+      return { success: false, error: 'Este e-mail pertence ao administrador principal.' };
     }
 
-    const newUser = {
+    const users = getStoredUsers();
+    if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+      setLoading(false);
+      return { success: false, error: 'Este e-mail já está cadastrado no sistema.' };
+    }
+
+    const newUser: UserProfile = {
       id: crypto.randomUUID(),
-      name: name.trim(),
-      email: email.trim(),
-      password,
+      name: cleanName,
+      email: cleanEmail,
+      password: cleanPassword,
       role: 'admin',
+      status: 'pending', // Fica pendente aguardando aprovação de Emerson!
       created_at: new Date().toISOString(),
     };
 
-    usersList.push(newUser);
-    localStorage.setItem(LOCAL_STORAGE_USERS_DB, JSON.stringify(usersList));
-
-    const profile: UserProfile = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: 'admin',
-    };
-    setUser(profile);
-    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(profile));
+    const updated = [...users, newUser];
+    saveStoredUsers(updated);
+    setAllUsers(updated);
 
     setLoading(false);
-    return { success: true };
+    return {
+      success: true,
+      message: '✅ Conta criada com sucesso! Como medida de segurança, o acesso precisa ser aprovado pelo Emerson. Tente fazer login assim que for liberado.',
+    };
   };
 
   const logout = async () => {
-    const supabase = getSupabaseClient();
-    if (supabase) {
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.warn('Erro signOut Supabase:', e);
-      }
-    }
     setUser(null);
-    localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
   };
 
+  // Funções exclusivas do Super Admin (Emerson)
+  const getRegisteredUsers = () => {
+    const list = getStoredUsers();
+    setAllUsers(list);
+    return list;
+  };
+
+  const approveUser = (userId: string) => {
+    const list = getStoredUsers().map(u => (u.id === userId ? { ...u, status: 'approved' as UserStatus } : u));
+    saveStoredUsers(list);
+    setAllUsers(list);
+  };
+
+  const rejectUser = (userId: string) => {
+    const list = getStoredUsers().map(u => (u.id === userId ? { ...u, status: 'rejected' as UserStatus } : u));
+    saveStoredUsers(list);
+    setAllUsers(list);
+  };
+
+  const deleteUser = (userId: string) => {
+    // Não permite deletar o master admin
+    const list = getStoredUsers().filter(u => u.id !== userId && u.email !== MASTER_ADMIN.email);
+    saveStoredUsers(list);
+    setAllUsers(list);
+  };
+
+  const pendingCount = allUsers.filter(u => u.status === 'pending').length;
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        getRegisteredUsers,
+        approveUser,
+        rejectUser,
+        deleteUser,
+        pendingCount,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -245,4 +262,3 @@ export function useAuth() {
   }
   return context;
 }
-

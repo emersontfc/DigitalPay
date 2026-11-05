@@ -28,3 +28,4 @@ export function formatPrice(amount: number | undefined | null, currencyCode?: st
   const formattedNumber = val.toFixed(2).replace('.', ',');
   return `${symbol} ${formattedNumber}`;
 }
+
