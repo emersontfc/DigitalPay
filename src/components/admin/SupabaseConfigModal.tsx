@@ -92,7 +92,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-5">
           <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs sm:text-sm text-slate-300 space-y-2">
             <p className="font-semibold text-white flex items-center gap-1.5">
-              💡 Como funciona o DigitalPay:
+              💡 Como funciona o Digitall Pay:
             </p>
             <p className="text-slate-400">
               O sistema funciona imediatamente mesmo sem Supabase (usando armazenamento local com produtos reais para teste). Quando quiser persistência em nuvem, basta colocar as credenciais abaixo e rodar o arquivo <code className="text-emerald-400 bg-slate-900 px-1 py-0.5 rounded">supabase_schema.sql</code> no SQL Editor do Supabase.

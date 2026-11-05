@@ -506,7 +506,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       Slug da URL da Página de Vendas (/p/:slug) *
                     </label>
                     <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm">
-                      <span className="text-slate-500 font-mono">digitalpay.com/p/</span>
+                      <span className="text-slate-500 font-mono">digitallpay.com/p/</span>
                       <input
                         type="text"
                         required

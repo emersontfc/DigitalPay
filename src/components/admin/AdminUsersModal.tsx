@@ -63,7 +63,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({ isOpen, onClos
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Apenas você decide quem tem permissão para gerenciar e criar páginas no DigitalPay
+                Apenas você decide quem tem permissão para gerenciar e criar páginas no Digitall Pay
               </p>
             </div>
           </div>

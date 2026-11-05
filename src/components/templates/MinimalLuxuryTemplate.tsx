@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { formatPrice } from '../../utils/currency';
 import {
   Award,
@@ -30,9 +31,12 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 selection:bg-indigo-600 selection:text-white">
-      {/* 1. Timer discreto e executivo */}
+      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      <SalesPageTopBar variant="luxury" />
+
+      {/* 2. Timer discreto e executivo */}
       {product.countdown_enabled && (
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-11 z-20">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="luxury"
@@ -301,7 +305,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
 
       {/* Rodapé */}
       <footer className="py-12 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500">
-        <p className="font-bold text-slate-400">DIGITALPAY • PLATAFORMA DE VENDAS</p>
+        <p className="font-bold text-slate-400">DIGITALL PAY • PLATAFORMA DE VENDAS</p>
         <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 

@@ -12,6 +12,7 @@ import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Plus,
   Search,
@@ -160,14 +161,10 @@ export const AdminDashboard: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Link to="/admin" className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <span className="font-black text-emerald-400 text-lg">DP</span>
-                </div>
-              </div>
+              <BrandLogo size="md" variant="neon" showText={false} />
               <div>
                 <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
-                  Digital<span className="text-emerald-400">Pay</span>
+                  Digitall<span className="text-emerald-400">Pay</span>
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
                   Painel de Administração

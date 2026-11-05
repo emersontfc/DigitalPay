@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { formatPrice } from '../../utils/currency';
 import {
   CheckCircle2,
@@ -36,9 +37,12 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
 
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-emerald-500 selection:text-black">
-      {/* 1. Barra de Contagem Regressiva Topo */}
+      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      <SalesPageTopBar variant="neon" />
+
+      {/* 2. Barra de Contagem Regressiva Topo */}
       {product.countdown_enabled && (
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-11 z-20">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="neon"
@@ -367,7 +371,7 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
       <footer className="py-12 px-4 border-t border-slate-800 text-center text-xs text-slate-500">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-3">
           <div className="font-extrabold text-slate-300 text-base tracking-wider">
-            DIGITAL<span className="text-emerald-400">PAY</span>
+            DIGITALL<span className="text-emerald-400"> PAY</span>
           </div>
           <p>© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
           <p className="max-w-xl text-slate-600 text-[11px] leading-relaxed">

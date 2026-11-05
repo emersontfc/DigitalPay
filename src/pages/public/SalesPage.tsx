@@ -54,7 +54,7 @@ export const SalesPage: React.FC = () => {
           className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-bold inline-flex items-center gap-2 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Voltar ao Início do DigitalPay</span>
+          <span>Voltar ao Início do Digitall Pay</span>
         </Link>
       </div>
     );

@@ -4,6 +4,7 @@ import { CountdownTimer } from '../common/CountdownTimer';
 import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
+import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { formatPrice } from '../../utils/currency';
 import {
   Flame,
@@ -36,9 +37,12 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
 
   return (
     <div className="min-h-screen bg-[#080808] text-neutral-100 selection:bg-amber-400 selection:text-neutral-950 font-sans">
-      {/* 1. Barra de Escassez Ouro e Preto */}
+      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      <SalesPageTopBar variant="gold" />
+
+      {/* 2. Barra de Escassez Ouro e Preto */}
       {product.countdown_enabled && (
-        <div className="sticky top-0 z-40 shadow-xl">
+        <div className="sticky top-11 z-20 shadow-xl">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="gold"
@@ -318,7 +322,7 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
 
       {/* Rodapé */}
       <footer className="py-12 px-4 border-t border-neutral-800 text-center text-xs text-neutral-500">
-        <p className="font-black text-neutral-300 tracking-wider">DIGITALPAY</p>
+        <p className="font-black text-neutral-300 tracking-wider">DIGITALL PAY</p>
         <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 

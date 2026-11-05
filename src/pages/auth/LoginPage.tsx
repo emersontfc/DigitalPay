@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Lock,
   Mail,
@@ -86,20 +87,13 @@ export const LoginPage: React.FC = () => {
 
       {/* Container principal */}
       <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Logo DigitalPay */}
+        {/* Logo Digitall Pay */}
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2.5 group mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-[0_0_30px_rgba(16,185,129,0.5)]">
-              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                <span className="font-black text-emerald-400 text-xl">DP</span>
-              </div>
-            </div>
-            <span className="text-2xl font-black text-white tracking-tight flex items-center gap-1">
-              Digital<span className="text-emerald-400">Pay</span>
-            </span>
-          </Link>
+          <div className="mb-3">
+            <BrandLogo linkTo="/" size="lg" variant="neon" showText={true} />
+          </div>
           <h2 className="text-xl font-bold text-white">
-            {isRegister ? 'Criar Conta de Administrador' : 'Acesse o Painel DigitalPay'}
+            {isRegister ? 'Criar Conta de Administrador' : 'Acesse o Painel Digitall Pay'}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {isRegister

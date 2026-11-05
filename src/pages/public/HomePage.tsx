@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { fetchProducts } from '../../lib/supabase';
 import { formatPrice } from '../../utils/currency';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Sparkles,
   ArrowRight,
@@ -43,18 +44,7 @@ export const HomePage: React.FC = () => {
       <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <span className="font-black text-emerald-400 text-lg">DP</span>
-                </div>
-              </div>
-              <div>
-                <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
-                  Digital<span className="text-emerald-400">Pay</span>
-                </span>
-              </div>
-            </Link>
+            <BrandLogo linkTo="/" size="md" variant="neon" />
           </div>
 
           <div className="flex items-center gap-3">
@@ -93,7 +83,7 @@ export const HomePage: React.FC = () => {
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6">
             Páginas de Vendas de Alta Conversão no{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-              DigitalPay
+              Digitall Pay
             </span>
           </h1>
 
@@ -153,7 +143,7 @@ export const HomePage: React.FC = () => {
               Exemplos Ativos
             </span>
             <h2 className="text-3xl font-black text-white mt-1">
-              Páginas de Vendas Criadas no DigitalPay
+              Páginas de Vendas Criadas no Digitall Pay
             </h2>
             <p className="text-sm text-slate-400 mt-1">
               Clique em qualquer uma das páginas abaixo para testar a experiência do comprador:
@@ -234,7 +224,7 @@ export const HomePage: React.FC = () => {
       {/* 4. Rodapé */}
       <footer className="py-12 px-4 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500">
         <p className="font-black text-slate-300 text-sm tracking-wider">
-          DIGITAL<span className="text-emerald-400">PAY</span>
+          DIGITALL<span className="text-emerald-400"> PAY</span>
         </p>
         <p className="mt-1">
           Plataforma de Páginas de Vendas e Checkout de Alta Conversão.
