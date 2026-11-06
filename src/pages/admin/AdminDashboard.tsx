@@ -35,7 +35,8 @@ import {
   Bookmark,
   Wand2,
   ArrowRight,
-  Key
+  Key,
+  Clock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -50,6 +51,7 @@ export const AdminDashboard: React.FC = () => {
   // Modais
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
@@ -241,16 +243,17 @@ export const AdminDashboard: React.FC = () => {
               </span>
             </Link>
 
-            {/* Botão Novo Produto */}
+            {/* Botão Criar Página Manual (Em Breve) */}
             <button
-              onClick={() => {
-                setEditingProduct(null);
-                setIsEditorOpen(true);
-              }}
-              className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-1.5 shrink-0 cursor-pointer"
+              onClick={() => setIsComingSoonOpen(true)}
+              className="px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer group"
+              title="Criador Manual de Páginas - Disponível Brevemente"
             >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Criar Nova Página</span>
+              <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
+              <span>Criar Página</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider">
+                Brevemente
+              </span>
             </button>
 
             {/* Biblioteca de Modelos */}
@@ -441,16 +444,13 @@ export const AdminDashboard: React.FC = () => {
                   : 'Comece criando o primeiro produto para gerar a sua página de alta conversão!'}
               </p>
             </div>
-            <button
-              onClick={() => {
-                setEditingProduct(null);
-                setIsEditorOpen(true);
-              }}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 inline-flex items-center gap-2"
+            <Link
+              to="/admin/ai-builder/new"
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 hover:opacity-95 text-slate-950 inline-flex items-center gap-2 shadow-lg cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Criar Primeira Página Agora</span>
-            </button>
+              <Sparkles className="w-4 h-4 text-purple-200 animate-pulse" />
+              <span>Criar Primeira Página com IA</span>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -649,6 +649,54 @@ export const AdminDashboard: React.FC = () => {
             setAiStatus(aiOrchestrator.getStatus());
           }}
         />
+      )}
+
+      {/* Modal Brevemente para Criador Manual */}
+      {isComingSoonOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden">
+            {/* Glow decorativo */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] pointer-events-none rounded-full" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 blur-[80px] pointer-events-none rounded-full" />
+
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center justify-center mx-auto mb-4 relative z-10 shadow-lg">
+              <Clock className="w-7 h-7" />
+            </div>
+
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider mb-2 relative z-10">
+              Disponível Brevemente
+            </span>
+
+            <h3 className="text-xl font-black text-white relative z-10 mb-2">
+              Criador Manual de Páginas
+            </h3>
+
+            <p className="text-xs text-slate-400 leading-relaxed relative z-10 mb-6">
+              O construtor manual está sendo completamente atualizado para oferecer novos blocos visuais, integração com novos gateways de pagamento e salvamento sem falhas.
+              <br /><br />
+              Por enquanto, utilize o <strong>DigitalPay AI Builder</strong> para gerar e publicar páginas de vendas completas em segundos com inteligência artificial!
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 relative z-10">
+              <button
+                type="button"
+                onClick={() => setIsComingSoonOpen(false)}
+                className="w-full sm:flex-1 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Entendi, Fechar
+              </button>
+
+              <Link
+                to="/admin/ai-builder/new"
+                onClick={() => setIsComingSoonOpen(false)}
+                className="w-full sm:flex-1 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(168,85,247,0.35)] cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+                <span>Usar AI Builder</span>
+              </Link>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
