@@ -81,19 +81,19 @@ export const ModelManagerModal: React.FC<ModelManagerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-4 bg-black/90 backdrop-blur-md">
+      <div className="bg-slate-900 border-0 sm:border border-slate-700 w-full max-w-3xl sm:rounded-2xl rounded-none shadow-2xl flex flex-col h-full sm:h-auto max-h-full sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <Sparkles className="w-5 h-5" />
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className="font-bold text-white text-base sm:text-lg">
-                Biblioteca de Modelos & Templates de Páginas
+            <div className="min-w-0">
+              <h3 className="font-bold text-white text-sm sm:text-lg truncate">
+                Biblioteca de Modelos & Templates
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-400 truncate hidden sm:block">
                 Carregue estruturas prontas de alta conversão ou salve o seu próprio modelo
               </p>
             </div>
@@ -108,41 +108,41 @@ export const ModelManagerModal: React.FC<ModelManagerModalProps> = ({
         </div>
 
         {/* Abas */}
-        <div className="px-6 border-b border-slate-800 bg-slate-950/40 flex items-center gap-3 pt-3 pb-2 overflow-x-auto">
+        <div className="px-3 sm:px-6 border-b border-slate-800 bg-slate-950/40 flex items-center gap-2 pt-2.5 pb-2 overflow-x-auto no-scrollbar shrink-0">
           <button
             onClick={() => setActiveTab('prontos')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === 'prontos'
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Modelos Prontos do Sistema ({models.factory.length})</span>
+            <span>Modelos Prontos ({models.factory.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('salvos')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === 'salvos'
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Bookmark className="w-3.5 h-3.5" />
-            <span>Meus Modelos Salvos ({models.custom.length})</span>
+            <span>Meus Modelos ({models.custom.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('criar')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === 'criar'
                 ? 'bg-emerald-500 text-slate-950 font-black'
-                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Plus className="w-3.5 h-3.5 stroke-[3]" />
-            <span>Salvar Página Atual como Modelo</span>
+            <span>Salvar Atual</span>
           </button>
         </div>
 

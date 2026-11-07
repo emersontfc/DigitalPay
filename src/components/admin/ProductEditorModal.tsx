@@ -323,48 +323,48 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col h-[94vh] overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/90 backdrop-blur-md">
+      <div className="bg-slate-900 border-0 sm:border border-slate-700 w-full max-w-5xl sm:rounded-2xl rounded-none shadow-2xl flex flex-col h-full sm:h-[94vh] overflow-hidden relative">
         {/* Header Modal */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <Sparkles className="w-5 h-5" />
+        <div className="px-3.5 sm:px-6 py-2.5 sm:py-3.5 border-b border-slate-800 bg-slate-950/90 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className="font-bold text-white text-lg">
-                {product ? `Editar: ${product.name}` : 'Criar Novo Produto & Página de Vendas'}
+            <div className="min-w-0">
+              <h3 className="font-bold text-white text-sm sm:text-lg truncate">
+                {product ? `Editar: ${product.name}` : 'Criar Nova Página'}
               </h3>
-              <p className="text-xs text-slate-400">
-                Configure os templates, preços, links de pagamento e elementos persuasivos
+              <p className="text-[10px] sm:text-xs text-slate-400 truncate hidden sm:block">
+                Configure template, mídias, preços e botões persuasivos
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Botão Biblioteca de Modelos */}
             <button
               type="button"
               onClick={() => setIsModelModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Carregar modelos prontos de alta conversão ou salvar o seu modelo"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Carregar modelos prontos de alta conversão"
             >
               <Bookmark className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Modelos & Templates</span>
+              <span className="hidden md:inline">Modelos</span>
             </button>
 
             {/* Pré-visualizar Página */}
             <button
               type="button"
               onClick={() => setActiveTab(activeTab === 'preview' ? 'geral' : 'preview')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'preview'
                   ? 'bg-emerald-500 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                   : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
               }`}
             >
-              <Eye className="w-4 h-4" />
-              <span>{activeTab === 'preview' ? 'Voltar ao Editor' : 'Pré-visualizar Página'}</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{activeTab === 'preview' ? 'Voltar' : 'Prévia'}</span>
             </button>
 
             {/* Botão Gravar Rápido no Topo */}
@@ -372,7 +372,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               type="button"
               onClick={handleManualSave}
               disabled={loading}
-              className={`px-4 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 ${
+              className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 ${
                 saveSuccess
                   ? 'bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
                   : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
@@ -385,13 +385,14 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               ) : (
                 <Save className="w-3.5 h-3.5" />
               )}
-              <span>{loading ? 'Gravando...' : saveSuccess ? 'Gravado!' : 'Gravar Página'}</span>
+              <span>{loading ? 'Salvando...' : saveSuccess ? 'Gravado!' : 'Gravar'}</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              title="Fechar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -400,7 +401,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
         {/* Feedback de Erro ou Sucesso */}
         {errorMessage && (
-          <div className="mx-6 mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center justify-between">
+          <div className="mx-3.5 sm:mx-6 mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
@@ -410,7 +411,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         )}
 
         {saveSuccess && (
-          <div className="mx-6 mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+          <div className="mx-3.5 sm:mx-6 mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
             <Check className="w-4 h-4 stroke-[3]" />
             <span>Página gravada com sucesso! Atualizando catálogo...</span>
           </div>
@@ -418,13 +419,13 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
         {/* Tab Navigation (quando não estiver no preview) */}
         {activeTab !== 'preview' && (
-          <div className="px-6 border-b border-slate-800 bg-slate-950/40 flex items-center gap-2 overflow-x-auto shrink-0 py-2">
+          <div className="px-3 sm:px-6 border-b border-slate-800 bg-slate-950/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto shrink-0 py-2 no-scrollbar scroll-smooth">
             {[
-              { id: 'geral', label: '1. Geral & Template', icon: Layers },
-              { id: 'copy', label: '2. Copywriting & Mídia', icon: Video },
-              { id: 'preco', label: '3. Preço & Link Checkout', icon: DollarSign },
-              { id: 'conteudo', label: '4. Benefícios & Módulos', icon: Sparkles },
-              { id: 'faq', label: '5. Garantia & FAQ', icon: HelpCircle },
+              { id: 'geral', label: '1. Geral', fullLabel: '1. Geral & Template', icon: Layers },
+              { id: 'copy', label: '2. Mídia & VSL', fullLabel: '2. Copy & Mídia', icon: Video },
+              { id: 'preco', label: '3. Preço & Pixels', fullLabel: '3. Preço & Checkout', icon: DollarSign },
+              { id: 'conteudo', label: '4. Conteúdo', fullLabel: '4. Benefícios & Módulos', icon: Sparkles },
+              { id: 'faq', label: '5. Garantia & FAQ', fullLabel: '5. Garantia & FAQ', icon: HelpCircle },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -432,14 +433,15 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-colors shrink-0 ${
                     isActive
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="sm:hidden">{tab.label}</span>
+                  <span className="hidden sm:inline">{tab.fullLabel}</span>
                 </button>
               );
             })}
@@ -447,7 +449,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         )}
 
         {/* Body Container */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 overscroll-contain">
           {activeTab === 'preview' ? (
             /* Modo Pré-visualização ao vivo */
             <div className="rounded-2xl border border-slate-800 overflow-hidden shadow-2xl bg-black">
@@ -537,14 +539,15 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       Slug da URL da Página de Vendas (/p/:slug) *
                     </label>
                     <div className="flex items-center rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm">
-                      <span className="text-slate-500 font-mono">digitallpay.com/p/</span>
+                      <span className="text-slate-500 font-mono text-xs sm:text-sm shrink-0 hidden sm:inline">digitallpay.store/p/</span>
+                      <span className="text-slate-500 font-mono text-xs sm:text-sm shrink-0 sm:hidden">/p/</span>
                       <input
                         type="text"
                         required
                         placeholder="nome-do-produto"
                         value={slug}
                         onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        className="w-full bg-transparent text-emerald-400 font-mono font-semibold focus:outline-none pl-1"
+                        className="w-full bg-transparent text-emerald-400 font-mono font-semibold focus:outline-none pl-1 text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -809,16 +812,16 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     💡 <strong>Como funcionam os botões de pagamento:</strong> Coloque abaixo o link de checkout do produto (seja da Kiwify, Eduzz, Hotmart, Mercado Pago, Stripe ou WhatsApp). Quando o comprador clicar no botão da página, ele é direcionado imediatamente para o pagamento com efeito comemorativo.
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Coins className="w-3.5 h-3.5 text-emerald-400" />
+                      <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                        <Coins className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         <span>Moeda</span>
                       </label>
                       <select
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 text-sm"
+                        className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 text-xs sm:text-sm"
                       >
                         {SUPPORTED_CURRENCIES.map((cur) => (
                           <option key={cur.code} value={cur.code}>
@@ -829,21 +832,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Preço Original Riscado
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="497.00"
-                        value={originalPrice}
-                        onChange={(e) => setOriginalPrice(parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                      <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 truncate">
                         Preço Promocional *
                       </label>
                       <input
@@ -853,20 +842,34 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                         placeholder="197.00"
                         value={promoPrice}
                         onChange={(e) => setPromoPrice(parseFloat(e.target.value) || 0)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-emerald-500/50 text-emerald-400 font-bold text-sm"
+                        className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-slate-950 border border-emerald-500/50 text-emerald-400 font-bold text-xs sm:text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Texto de Parcelamento
+                      <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 truncate">
+                        Preço Original Riscado
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="497.00"
+                        value={originalPrice}
+                        onChange={(e) => setOriginalPrice(parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 truncate">
+                        Parcelamento
                       </label>
                       <input
                         type="text"
                         placeholder="ou 12x no cartão"
                         value={installmentsText}
                         onChange={(e) => setInstallmentsText(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm"
+                        className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -1060,7 +1063,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                           key={m.id || idx}
                           className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3"
                         >
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input
                               type="text"
                               placeholder="Título do Módulo"
@@ -1070,26 +1073,29 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                                 updated[idx].title = e.target.value;
                                 setModules(updated);
                               }}
-                              className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-sm"
+                              className="w-full sm:flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-sm"
                             />
-                            <input
-                              type="text"
-                              placeholder="Ex: 6 Aulas"
-                              value={m.lessonsCount || ''}
-                              onChange={(e) => {
-                                const updated = [...modules];
-                                updated[idx].lessonsCount = e.target.value;
-                                setModules(updated);
-                              }}
-                              className="w-32 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveModule(m.id)}
-                              className="p-1.5 text-slate-500 hover:text-rose-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Ex: 6 Aulas"
+                                value={m.lessonsCount || ''}
+                                onChange={(e) => {
+                                  const updated = [...modules];
+                                  updated[idx].lessonsCount = e.target.value;
+                                  setModules(updated);
+                                }}
+                                className="flex-1 sm:w-28 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveModule(m.id)}
+                                className="p-2 text-slate-500 hover:text-rose-400 shrink-0"
+                                title="Remover módulo"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                           <textarea
                             rows={2}
@@ -1173,7 +1179,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     <div className="space-y-3">
                       {testimonials.map((t, idx) => (
                         <div key={t.id || idx} className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input
                               type="text"
                               placeholder="Nome do Aluno"
@@ -1183,26 +1189,29 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                                 updated[idx].name = e.target.value;
                                 setTestimonials(updated);
                               }}
-                              className="w-1/2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-sm font-semibold"
+                              className="w-full sm:flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-white text-sm font-semibold"
                             />
-                            <input
-                              type="text"
-                              placeholder="Cargo / Profissão"
-                              value={t.role}
-                              onChange={(e) => {
-                                const updated = [...testimonials];
-                                updated[idx].role = e.target.value;
-                                setTestimonials(updated);
-                              }}
-                              className="w-1/2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTestimonial(t.id)}
-                              className="p-1.5 text-slate-500 hover:text-rose-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Cargo / Profissão"
+                                value={t.role}
+                                onChange={(e) => {
+                                  const updated = [...testimonials];
+                                  updated[idx].role = e.target.value;
+                                  setTestimonials(updated);
+                                }}
+                                className="flex-1 sm:w-44 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTestimonial(t.id)}
+                                className="p-2 text-slate-500 hover:text-rose-400 shrink-0"
+                                title="Remover depoimento"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                           <textarea
                             rows={2}
@@ -1292,47 +1301,42 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+        {/* Footer Actions Responsivo Mobile/Desktop */}
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-800 bg-slate-950/95 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="hidden sm:inline-block px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
             >
               Cancelar
             </button>
-            {errorMessage && (
-              <span className="text-xs text-rose-400 font-semibold truncate max-w-xs sm:max-w-md">
-                ⚠️ {errorMessage}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsModelModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-purple-300 border border-purple-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Carregar modelos prontos"
             >
               <Bookmark className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Modelos & Templates</span>
+              <span className="hidden sm:inline">Modelos</span>
             </button>
+          </div>
 
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={() => setActiveTab(activeTab === 'preview' ? 'geral' : 'preview')}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="flex-1 sm:flex-initial px-3 sm:px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>{activeTab === 'preview' ? 'Editar Campos' : 'Ver Prévia'}</span>
+              <span>{activeTab === 'preview' ? 'Editar' : 'Prévia'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleManualSave}
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 whitespace-nowrap ${
                 saveSuccess
                   ? 'bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.5)]'
                   : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]'
@@ -1341,17 +1345,17 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Gravando Página...</span>
+                  <span>Gravando...</span>
                 </>
               ) : saveSuccess ? (
                 <>
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Página Gravada com Sucesso!</span>
+                  <span>Gravado!</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Gravar Página de Vendas</span>
+                  <span>Gravar Página</span>
                 </>
               )}
             </button>

@@ -176,34 +176,34 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
   return (
     <div className="space-y-2">
       {/* Cabeçalho com Seletor de Modo */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
         <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
           {label}
         </label>
-        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-xs self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setMode('upload')}
-            className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1.5 transition-all text-[11px] sm:text-xs ${
               mode === 'upload'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Upload className="w-3 h-3" />
-            <span>Upload de Arquivo</span>
+            <span>Upload</span>
           </button>
           <button
             type="button"
             onClick={() => setMode('url')}
-            className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-2.5 py-1 rounded-md font-semibold flex items-center gap-1.5 transition-all text-[11px] sm:text-xs ${
               mode === 'url'
                 ? 'bg-emerald-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <LinkIcon className="w-3 h-3" />
-            <span>Link da Web</span>
+            <span>Link Web</span>
           </button>
         </div>
       </div>
