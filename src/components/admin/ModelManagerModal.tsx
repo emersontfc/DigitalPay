@@ -11,7 +11,8 @@ import {
   Check,
   X,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Award
 } from 'lucide-react';
 
 interface ModelManagerModalProps {
@@ -73,6 +74,8 @@ export const ModelManagerModal: React.FC<ModelManagerModalProps> = ({
         return <BookOpen className="w-4 h-4 text-blue-400" />;
       case 'mentoria':
         return <Crown className="w-4 h-4 text-amber-400" />;
+      case 'marca':
+        return <Award className="w-4 h-4 text-rose-400" />;
       case 'comunidade':
         return <Users className="w-4 h-4 text-teal-400" />;
       default:

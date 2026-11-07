@@ -396,6 +396,14 @@ export const AdminDashboard: React.FC = () => {
               <option value="kiwify-neon">Kiwify Neon (Dark Glow)</option>
               <option value="minimal-luxury">Minimal Luxury (High Ticket)</option>
               <option value="vanguard-black-gold">Vanguard Black & Gold</option>
+              <option value="titanium-tech">Titanium Tech (Modern SaaS)</option>
+              <option value="crimson-beast">Crimson Beast (Fitness & Ação)</option>
+              <option value="rose-gold-glamour">Rose Gold (Beleza & D2C)</option>
+              <option value="sapphire-fintech">Sapphire Authority (Finanças)</option>
+              <option value="sunset-creator">Sunset Coral (Creators)</option>
+              <option value="midnight-violet">Midnight Cyber (IA & Agências)</option>
+              <option value="emerald-prestige">Emerald Clean (Saúde & Bio)</option>
+              <option value="monochrome-editorial">Noir Editorial (Moda & Grife)</option>
             </select>
 
             <select
@@ -451,11 +459,19 @@ export const AdminDashboard: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((prod) => {
-              const templateBadge = {
+              const templateBadge = ({
                 'kiwify-neon': { label: 'Kiwify Neon', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
                 'minimal-luxury': { label: 'Minimal Luxury', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30' },
                 'vanguard-black-gold': { label: 'Vanguard Gold', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
-              }[prod.template] || { label: prod.template, color: 'bg-slate-800 text-slate-300' };
+                'titanium-tech': { label: 'Titanium Tech', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' },
+                'crimson-beast': { label: 'Crimson Beast', color: 'bg-red-500/10 text-red-400 border-red-500/30' },
+                'rose-gold-glamour': { label: 'Rose Gold', color: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
+                'sapphire-fintech': { label: 'Sapphire Blue', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
+                'sunset-creator': { label: 'Sunset Coral', color: 'bg-orange-500/10 text-orange-400 border-orange-500/30' },
+                'midnight-violet': { label: 'Midnight Violet', color: 'bg-purple-500/10 text-purple-300 border-purple-500/30' },
+                'emerald-prestige': { label: 'Emerald Bio', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' },
+                'monochrome-editorial': { label: 'Noir Editorial', color: 'bg-zinc-800 text-zinc-200 border-zinc-700' },
+              } as Record<string, { label: string; color: string }>)[prod.template] || { label: prod.template, color: 'bg-slate-800 text-slate-300' };
 
               return (
                 <div

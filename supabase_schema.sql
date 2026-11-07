@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     name TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'draft')),
-    template TEXT NOT NULL DEFAULT 'kiwify-neon' CHECK (template IN ('kiwify-neon', 'minimal-luxury', 'vanguard-black-gold')),
+    template TEXT NOT NULL DEFAULT 'kiwify-neon',
     
     -- Copy & Hero
     headline TEXT NOT NULL,
@@ -64,6 +64,9 @@ CREATE TABLE IF NOT EXISTS public.products (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Garantir flexibilidade para todos os novos templates de marca
+ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
 
 -- 2. Índice rápido para busca por Slug (URLs amigáveis /p/:slug)
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products(slug);
@@ -227,6 +230,9 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Garantir flexibilidade para todos os novos templates de marca
+ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
 
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 

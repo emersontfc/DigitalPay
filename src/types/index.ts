@@ -1,4 +1,15 @@
-export type TemplateType = 'kiwify-neon' | 'minimal-luxury' | 'vanguard-black-gold';
+export type TemplateType =
+  | 'kiwify-neon'
+  | 'minimal-luxury'
+  | 'vanguard-black-gold'
+  | 'titanium-tech'
+  | 'crimson-beast'
+  | 'rose-gold-glamour'
+  | 'sapphire-fintech'
+  | 'sunset-creator'
+  | 'midnight-violet'
+  | 'emerald-prestige'
+  | 'monochrome-editorial';
 
 export interface Testimonial {
   id: string;
@@ -73,7 +84,7 @@ export interface PageModel {
   id: string;
   name: string;
   description: string;
-  category: 'vsl' | 'ebook' | 'mentoria' | 'comunidade' | 'personalizado';
+  category: 'vsl' | 'ebook' | 'mentoria' | 'comunidade' | 'marca' | 'personalizado';
   template: TemplateType;
   productData: Partial<Product>;
   created_at: string;

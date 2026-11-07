@@ -5,7 +5,7 @@ import { formatPrice } from '../../utils/currency';
 
 interface StickyCtaBarProps {
   product: Product;
-  variant?: 'neon' | 'luxury' | 'gold';
+  variant?: 'neon' | 'luxury' | 'gold' | 'cyan' | 'crimson' | 'rose' | 'blue' | 'sunset' | 'violet' | 'emerald' | 'noir' | string;
   show?: boolean;
 }
 
@@ -32,11 +32,19 @@ export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
 
   if (!show || !visible) return null;
 
-  const bgStyles = {
+  const bgStyles = ({
     neon: 'bg-slate-950/95 border-emerald-500/30 text-white',
     luxury: 'bg-slate-900/95 border-indigo-500/30 text-white',
     gold: 'bg-neutral-950/95 border-amber-500/40 text-white',
-  }[variant];
+    cyan: 'bg-slate-950/95 border-cyan-500/30 text-white',
+    crimson: 'bg-neutral-950/95 border-red-500/40 text-white',
+    rose: 'bg-stone-950/95 border-rose-500/30 text-white',
+    blue: 'bg-slate-950/95 border-blue-500/40 text-white',
+    sunset: 'bg-neutral-950/95 border-orange-500/40 text-white',
+    violet: 'bg-slate-950/95 border-purple-500/40 text-white',
+    emerald: 'bg-stone-950/95 border-emerald-500/40 text-white',
+    noir: 'bg-black/95 border-zinc-700 text-white',
+  } as Record<string, string>)[variant] || 'bg-slate-950/95 border-emerald-500/30 text-white';
 
   return (
     <div

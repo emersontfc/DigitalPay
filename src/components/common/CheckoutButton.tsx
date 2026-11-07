@@ -11,7 +11,7 @@ interface CheckoutButtonProps {
   installmentsText?: string;
   productName?: string;
   currency?: string;
-  variant?: 'neon' | 'luxury' | 'gold';
+  variant?: 'neon' | 'luxury' | 'gold' | 'cyan' | 'crimson' | 'rose' | 'blue' | 'sunset' | 'violet' | 'emerald' | 'noir' | string;
   size?: 'lg' | 'xl' | 'normal';
   fullWidth?: boolean;
   className?: string;
@@ -51,7 +51,7 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
     }
   };
 
-  const variantStyles = {
+  const variantStyles = ({
     neon: {
       btn: 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_45px_rgba(16,185,129,0.7)]',
       subtext: 'text-emerald-400/90',
@@ -67,7 +67,51 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
       subtext: 'text-amber-400/90 font-medium',
       icon: <ShoppingCart className="w-6 h-6 fill-neutral-950 text-neutral-950" />,
     },
-  }[variant];
+    cyan: {
+      btn: 'bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-black shadow-[0_0_35px_rgba(6,182,212,0.5)] hover:shadow-[0_0_50px_rgba(6,182,212,0.7)]',
+      subtext: 'text-cyan-400/90 font-medium',
+      icon: <Zap className="w-6 h-6 fill-slate-950 text-slate-950 animate-bounce" />,
+    },
+    crimson: {
+      btn: 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 text-white font-black shadow-[0_0_35px_rgba(239,68,68,0.5)] hover:shadow-[0_0_50px_rgba(239,68,68,0.8)] border border-red-400/30',
+      subtext: 'text-red-400/90 font-medium',
+      icon: <Zap className="w-6 h-6 fill-white text-white animate-bounce" />,
+    },
+    rose: {
+      btn: 'bg-gradient-to-r from-rose-400 via-pink-500 to-rose-600 hover:from-rose-300 hover:to-pink-400 text-white font-black shadow-[0_0_35px_rgba(244,63,94,0.5)] hover:shadow-[0_0_50px_rgba(244,63,94,0.7)]',
+      subtext: 'text-rose-300 font-medium',
+      icon: <ShoppingCart className="w-6 h-6 fill-white text-white" />,
+    },
+    blue: {
+      btn: 'bg-gradient-to-r from-blue-500 via-indigo-600 to-blue-700 hover:from-blue-400 hover:to-indigo-500 text-white font-black shadow-[0_0_35px_rgba(59,130,246,0.5)] hover:shadow-[0_0_50px_rgba(59,130,246,0.8)] border border-blue-400/30',
+      subtext: 'text-blue-300 font-medium',
+      icon: <Zap className="w-6 h-6 fill-white text-white animate-bounce" />,
+    },
+    sunset: {
+      btn: 'bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black shadow-[0_0_35px_rgba(249,115,22,0.5)] hover:shadow-[0_0_50px_rgba(249,115,22,0.8)]',
+      subtext: 'text-orange-300 font-medium',
+      icon: <Zap className="w-6 h-6 fill-slate-950 text-slate-950 animate-bounce" />,
+    },
+    violet: {
+      btn: 'bg-gradient-to-r from-purple-500 via-violet-600 to-fuchsia-600 hover:from-purple-400 hover:to-violet-500 text-white font-black shadow-[0_0_35px_rgba(168,85,247,0.5)] hover:shadow-[0_0_50px_rgba(168,85,247,0.8)] border border-purple-400/30',
+      subtext: 'text-purple-300 font-medium',
+      icon: <Zap className="w-6 h-6 fill-white text-white animate-bounce" />,
+    },
+    emerald: {
+      btn: 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 hover:from-emerald-400 hover:to-green-400 text-slate-950 font-black shadow-[0_0_35px_rgba(16,185,129,0.5)] hover:shadow-[0_0_50px_rgba(16,185,129,0.8)]',
+      subtext: 'text-emerald-300 font-medium',
+      icon: <ShoppingCart className="w-6 h-6 fill-slate-950 text-slate-950" />,
+    },
+    noir: {
+      btn: 'bg-gradient-to-r from-zinc-100 via-white to-zinc-200 hover:from-white hover:to-zinc-100 text-black font-black shadow-[0_0_35px_rgba(255,255,255,0.4)] hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] border-2 border-white',
+      subtext: 'text-zinc-300 font-medium',
+      icon: <ShoppingCart className="w-6 h-6 fill-black text-black" />,
+    },
+  } as Record<string, any>)[variant] || {
+    btn: 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_45px_rgba(16,185,129,0.7)]',
+    subtext: 'text-emerald-400/90',
+    icon: <Zap className="w-6 h-6 fill-slate-950 text-slate-950 animate-bounce" />,
+  };
 
   const sizeClasses = {
     normal: 'py-3 px-6 text-base',
