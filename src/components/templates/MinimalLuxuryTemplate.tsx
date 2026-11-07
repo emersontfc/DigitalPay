@@ -5,6 +5,7 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import {
   Award,
@@ -24,6 +25,12 @@ interface TemplateProps {
 
 export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
   const [openFaq, setOpenFaq] = useState<string | null>(product.faqs[0]?.id || null);
+
+  const { showOffer } = useVslPitchDelay({
+    delaySeconds: product.vsl_pitch_delay_seconds,
+    productId: product.id,
+    enabled: product.hero_type === 'vsl',
+  });
 
   const toggleFaq = (id: string) => {
     setOpenFaq(openFaq === id ? null : id);
@@ -71,18 +78,28 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
               type={product.hero_type}
               title={product.name}
               glowColor="indigo"
+              autoplay={product.vsl_autoplay}
             />
           </div>
 
-          <div className="max-w-md mx-auto">
-            <CheckoutButton
-              ctaText={product.cta_text}
-              ctaUrl={product.cta_url}
-              ctaSubtext={product.cta_subtext}
-              variant="luxury"
-              size="lg"
-            />
-          </div>
+          {showOffer ? (
+            <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <CheckoutButton
+                ctaText={product.cta_text}
+                ctaUrl={product.cta_url}
+                ctaSubtext={product.cta_subtext}
+                variant="luxury"
+                size="lg"
+              />
+            </div>
+          ) : (
+            <div className="py-2 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-slate-800 text-xs text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                <span>Assista ao vídeo para conhecer a proposta executiva...</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -222,46 +239,48 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
       </section>
 
       {/* 7. Proposta de Valor / Checkout */}
-      <section className="py-20 px-4" id="checkout-section">
-        <div className="max-w-lg mx-auto p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-indigo-500/30 shadow-2xl text-center">
-          <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">
-            Investimento
-          </span>
-          <h3 className="text-2xl font-bold text-white mt-1 mb-4">{product.name}</h3>
+      {showOffer && (
+        <section className="py-20 px-4 animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
+          <div className="max-w-lg mx-auto p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-indigo-500/30 shadow-2xl text-center">
+            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">
+              Investimento
+            </span>
+            <h3 className="text-2xl font-bold text-white mt-1 mb-4">{product.name}</h3>
 
-          {product.original_price > product.promo_price && (
-            <div className="text-slate-500 text-sm line-through mb-1">
-              De {formatPrice(product.original_price, product.currency)} por:
+            {product.original_price > product.promo_price && (
+              <div className="text-slate-500 text-sm line-through mb-1">
+                De {formatPrice(product.original_price, product.currency)} por:
+              </div>
+            )}
+
+            <div className="text-4xl font-black text-white my-2">
+              {formatPrice(product.promo_price, product.currency)}
             </div>
-          )}
+            <div className="text-sm text-indigo-300 font-medium mb-8">
+              {product.installments_text}
+            </div>
 
-          <div className="text-4xl font-black text-white my-2">
-            {formatPrice(product.promo_price, product.currency)}
-          </div>
-          <div className="text-sm text-indigo-300 font-medium mb-8">
-            {product.installments_text}
-          </div>
+            <CheckoutButton
+              ctaText={product.cta_text}
+              ctaUrl={product.cta_url}
+              ctaSubtext={product.cta_subtext}
+              variant="luxury"
+              size="lg"
+            />
 
-          <CheckoutButton
-            ctaText={product.cta_text}
-            ctaUrl={product.cta_url}
-            ctaSubtext={product.cta_subtext}
-            variant="luxury"
-            size="lg"
-          />
-
-          <div className="flex items-center justify-center gap-4 text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800">
-            <span className="flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-indigo-400" />
-              Ambiente Criptografado
-            </span>
-            <span className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-indigo-400" />
-              Garantia de {product.guarantee_days} dias
-            </span>
+            <div className="flex items-center justify-center gap-4 text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800">
+              <span className="flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-indigo-400" />
+                Ambiente Criptografado
+              </span>
+              <span className="flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-indigo-400" />
+                Garantia de {product.guarantee_days} dias
+              </span>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 8. FAQ */}
       {product.faqs && product.faqs.length > 0 && (
@@ -309,7 +328,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 
-      <StickyCtaBar product={product} variant="luxury" />
+      <StickyCtaBar product={product} variant="luxury" show={showOffer} />
     </div>
   );
 };

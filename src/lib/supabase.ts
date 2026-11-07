@@ -209,6 +209,8 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     hero_type: product.hero_type || 'image',
     hero_media_url: product.hero_media_url || 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&auto=format&fit=crop&q=80',
     badge_text: product.badge_text || 'Oferta Especial',
+    vsl_pitch_delay_seconds: Number(product.vsl_pitch_delay_seconds) || 0,
+    vsl_autoplay: Boolean(product.vsl_autoplay),
     original_price: Number(product.original_price) || 197,
     promo_price: Number(product.promo_price) || 97,
     installments_text: product.installments_text || 'ou 12x de R$ 9,70',
@@ -244,7 +246,19 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
         .upsert(fullProduct, { onConflict: 'id' });
 
       if (error) {
-        console.warn('Aviso ao sincronizar produto no Supabase (salvo localmente com sucesso):', error.message);
+        console.warn('Aviso ao sincronizar produto no Supabase (tentando modo de compatibilidade):', error.message);
+        // Fallback de compatibilidade se a tabela remota tiver restrições antigas
+        const compatiblePayload = {
+          ...fullProduct,
+          hero_type: fullProduct.hero_type === 'vsl' ? 'video' : fullProduct.hero_type,
+        };
+        delete (compatiblePayload as any).vsl_pitch_delay_seconds;
+        delete (compatiblePayload as any).vsl_autoplay;
+
+        const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
+        if (retryResult.error) {
+          console.warn('Aviso final Supabase (salvo localmente com sucesso total):', retryResult.error.message);
+        }
       }
     } catch (e) {
       console.warn('Falha de conexão Supabase ao salvar (salvo localmente com sucesso):', e);

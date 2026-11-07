@@ -69,6 +69,8 @@ export const AdminDashboard: React.FC = () => {
       hero_type: d.hero_type || 'video',
       hero_media_url: d.hero_media_url || '',
       badge_text: d.badge_text || 'OFERTA EXCLUSIVA',
+      vsl_pitch_delay_seconds: d.vsl_pitch_delay_seconds || 0,
+      vsl_autoplay: Boolean(d.vsl_autoplay),
       original_price: d.original_price || 197,
       promo_price: d.promo_price || 97,
       installments_text: d.installments_text || 'ou 12x no cartão',

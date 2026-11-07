@@ -5,6 +5,7 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import {
   Flame,
@@ -25,6 +26,12 @@ interface TemplateProps {
 
 export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) => {
   const [openFaq, setOpenFaq] = useState<string | null>(product.faqs[0]?.id || null);
+
+  const { showOffer } = useVslPitchDelay({
+    delaySeconds: product.vsl_pitch_delay_seconds,
+    productId: product.id,
+    enabled: product.hero_type === 'vsl',
+  });
 
   const toggleFaq = (id: string) => {
     setOpenFaq(openFaq === id ? null : id);
@@ -80,18 +87,28 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
               type={product.hero_type}
               title={product.name}
               glowColor="amber"
+              autoplay={product.vsl_autoplay}
             />
           </div>
 
-          <div className="max-w-xl mx-auto">
-            <CheckoutButton
-              ctaText={product.cta_text}
-              ctaUrl={product.cta_url}
-              ctaSubtext={product.cta_subtext}
-              variant="gold"
-              size="xl"
-            />
-          </div>
+          {showOffer ? (
+            <div className="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <CheckoutButton
+                ctaText={product.cta_text}
+                ctaUrl={product.cta_url}
+                ctaSubtext={product.cta_subtext}
+                variant="gold"
+                size="xl"
+              />
+            </div>
+          ) : (
+            <div className="py-2 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs text-neutral-400">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>Assista à apresentação para liberar a oportunidade exclusiva...</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -234,51 +251,53 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
       </section>
 
       {/* 7. Caixa da Oferta Final */}
-      <section className="py-20 px-4" id="checkout-section">
-        <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-neutral-950 border-2 border-amber-500/60 shadow-[0_0_50px_rgba(245,158,11,0.25)] text-center relative">
-          {discountPercent > 0 && (
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-neutral-950 font-black text-xs uppercase px-5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-              <Percent className="w-3.5 h-3.5" />
-              <span>{discountPercent}% DE DESCONTO HOJE</span>
+      {showOffer && (
+        <section className="py-20 px-4 animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
+          <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-neutral-950 border-2 border-amber-500/60 shadow-[0_0_50px_rgba(245,158,11,0.25)] text-center relative">
+            {discountPercent > 0 && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-neutral-950 font-black text-xs uppercase px-5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+                <Percent className="w-3.5 h-3.5" />
+                <span>{discountPercent}% DE DESCONTO HOJE</span>
+              </div>
+            )}
+
+            <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
+            <p className="text-neutral-400 text-sm mb-6">Aproveite enquanto as vagas ainda estão abertas</p>
+
+            {product.original_price > product.promo_price && (
+              <div className="text-neutral-500 text-sm line-through font-semibold mb-1">
+                De {formatPrice(product.original_price, product.currency)} por apenas:
+              </div>
+            )}
+
+            <div className="text-4xl sm:text-5xl font-black text-amber-400 my-2">
+              {formatPrice(product.promo_price, product.currency)}
             </div>
-          )}
-
-          <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
-          <p className="text-neutral-400 text-sm mb-6">Aproveite enquanto as vagas ainda estão abertas</p>
-
-          {product.original_price > product.promo_price && (
-            <div className="text-neutral-500 text-sm line-through font-semibold mb-1">
-              De {formatPrice(product.original_price, product.currency)} por apenas:
+            <div className="text-sm text-neutral-300 font-bold mb-8">
+              {product.installments_text}
             </div>
-          )}
 
-          <div className="text-4xl sm:text-5xl font-black text-amber-400 my-2">
-            {formatPrice(product.promo_price, product.currency)}
-          </div>
-          <div className="text-sm text-neutral-300 font-bold mb-8">
-            {product.installments_text}
-          </div>
+            <CheckoutButton
+              ctaText={product.cta_text}
+              ctaUrl={product.cta_url}
+              ctaSubtext={product.cta_subtext}
+              variant="gold"
+              size="xl"
+            />
 
-          <CheckoutButton
-            ctaText={product.cta_text}
-            ctaUrl={product.cta_url}
-            ctaSubtext={product.cta_subtext}
-            variant="gold"
-            size="xl"
-          />
-
-          <div className="flex items-center justify-center gap-6 text-xs text-neutral-400 mt-6 pt-4 border-t border-neutral-800">
-            <span className="flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-amber-400" />
-              Checkout 100% Blindado
-            </span>
-            <span className="flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              Garantia de {product.guarantee_days} Dias
-            </span>
+            <div className="flex items-center justify-center gap-6 text-xs text-neutral-400 mt-6 pt-4 border-t border-neutral-800">
+              <span className="flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                Checkout 100% Blindado
+              </span>
+              <span className="flex items-center gap-1">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                Garantia de {product.guarantee_days} Dias
+              </span>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 8. FAQ */}
       {product.faqs && product.faqs.length > 0 && (
@@ -326,7 +345,7 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
         <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 
-      <StickyCtaBar product={product} variant="gold" />
+      <StickyCtaBar product={product} variant="gold" show={showOffer} />
     </div>
   );
 };

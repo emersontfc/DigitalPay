@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Product } from '../../types';
-import { PageSchema } from '../../types/aiBuilder';
 import { fetchProductBySlug } from '../../lib/supabase';
-import { fetchAIPageBySlug } from '../../services/ai/aiPageStorage';
 import { TemplateRenderer } from '../../components/templates/TemplateRenderer';
-import { DynamicPageRenderer } from '../../components/ai-builder/renderer/DynamicPageRenderer';
 import { RefreshCw, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export const SalesPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [aiPage, setAiPage] = useState<PageSchema | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,15 +15,6 @@ export const SalesPage: React.FC = () => {
       if (!slug) return;
       setLoading(true);
       try {
-        // 1. Tentar buscar página gerada por IA
-        const aiData = await fetchAIPageBySlug(slug);
-        if (aiData) {
-          setAiPage(aiData);
-          document.title = `${aiData.title} | Digitall Pay`;
-          return;
-        }
-
-        // 2. Fallback para produto clássico
         const data = await fetchProductBySlug(slug);
         setProduct(data);
         if (data) {
@@ -50,11 +37,6 @@ export const SalesPage: React.FC = () => {
         <p className="text-lg font-bold">Carregando oferta exclusiva...</p>
       </div>
     );
-  }
-
-  // Renderizar página dinâmica do AI Builder
-  if (aiPage) {
-    return <DynamicPageRenderer page={aiPage} />;
   }
 
   // Renderizar página clássica
@@ -81,4 +63,5 @@ export const SalesPage: React.FC = () => {
     </div>
   );
 };
+
 

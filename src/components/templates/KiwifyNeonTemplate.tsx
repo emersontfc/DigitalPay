@@ -5,6 +5,7 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import {
   CheckCircle2,
@@ -26,6 +27,12 @@ interface TemplateProps {
 export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
   const [openFaq, setOpenFaq] = useState<string | null>(product.faqs[0]?.id || null);
   const [openModule, setOpenModule] = useState<string | null>(product.modules[0]?.id || null);
+
+  const { showOffer, revealNow, isDelayActive } = useVslPitchDelay({
+    delaySeconds: product.vsl_pitch_delay_seconds,
+    productId: product.id,
+    enabled: product.hero_type === 'vsl',
+  });
 
   const toggleFaq = (id: string) => {
     setOpenFaq(openFaq === id ? null : id);
@@ -85,19 +92,29 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
               type={product.hero_type}
               title={product.name}
               glowColor="emerald"
+              autoplay={product.vsl_autoplay}
             />
           </div>
 
-          {/* Primeiro CTA */}
-          <div className="max-w-xl mx-auto">
-            <CheckoutButton
-              ctaText={product.cta_text}
-              ctaUrl={product.cta_url}
-              ctaSubtext={product.cta_subtext}
-              variant="neon"
-              size="xl"
-            />
-          </div>
+          {/* Primeiro CTA com Pitch Delay */}
+          {showOffer ? (
+            <div className="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <CheckoutButton
+                ctaText={product.cta_text}
+                ctaUrl={product.cta_url}
+                ctaSubtext={product.cta_subtext}
+                variant="neon"
+                size="xl"
+              />
+            </div>
+          ) : (
+            <div className="py-2 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-slate-800 text-xs text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Assista ao vídeo para desbloquear a oferta exclusiva...</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -270,55 +287,57 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
       </section>
 
       {/* 7. Caixa da Oferta Irrecusável (Pricing Card) */}
-      <section className="py-20 px-4 relative" id="checkout-section">
-        <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-slate-950 border-2 border-emerald-500/50 shadow-[0_0_60px_rgba(16,185,129,0.25)] relative text-center">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs uppercase px-5 py-1.5 rounded-full shadow-lg">
-            Oferta Especial por Tempo Limitado
-          </div>
-
-          <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
-          <p className="text-slate-400 text-sm mb-6">Acesso completo e imediato ao material</p>
-
-          {/* Comparativo de Preço */}
-          {product.original_price > product.promo_price && (
-            <div className="text-slate-500 text-sm font-semibold mb-1 line-through">
-              De {formatPrice(product.original_price, product.currency)} por apenas:
+      {showOffer && (
+        <section className="py-20 px-4 relative animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
+          <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-slate-950 border-2 border-emerald-500/50 shadow-[0_0_60px_rgba(16,185,129,0.25)] relative text-center">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs uppercase px-5 py-1.5 rounded-full shadow-lg">
+              Oferta Especial por Tempo Limitado
             </div>
-          )}
 
-          <div className="mb-2">
-            <span className="text-slate-400 text-sm font-medium">Por apenas</span>
-            <div className="text-4xl sm:text-5xl font-black text-white tracking-tight my-1">
-              {formatPrice(product.promo_price, product.currency)}
+            <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
+            <p className="text-slate-400 text-sm mb-6">Acesso completo e imediato ao material</p>
+
+            {/* Comparativo de Preço */}
+            {product.original_price > product.promo_price && (
+              <div className="text-slate-500 text-sm font-semibold mb-1 line-through">
+                De {formatPrice(product.original_price, product.currency)} por apenas:
+              </div>
+            )}
+
+            <div className="mb-2">
+              <span className="text-slate-400 text-sm font-medium">Por apenas</span>
+              <div className="text-4xl sm:text-5xl font-black text-white tracking-tight my-1">
+                {formatPrice(product.promo_price, product.currency)}
+              </div>
+              <div className="text-emerald-400 font-bold text-sm sm:text-base">
+                {product.installments_text}
+              </div>
             </div>
-            <div className="text-emerald-400 font-bold text-sm sm:text-base">
-              {product.installments_text}
+
+            {/* Botão de Compra */}
+            <div className="mt-8 mb-6">
+              <CheckoutButton
+                ctaText={product.cta_text}
+                ctaUrl={product.cta_url}
+                ctaSubtext={product.cta_subtext}
+                variant="neon"
+                size="xl"
+              />
+            </div>
+
+            <div className="flex items-center justify-center gap-6 text-xs text-slate-400 pt-4 border-t border-slate-800">
+              <span className="flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                Pagamento Seguro
+              </span>
+              <span className="flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                {product.guarantee_days} Dias de Garantia
+              </span>
             </div>
           </div>
-
-          {/* Botão de Compra */}
-          <div className="mt-8 mb-6">
-            <CheckoutButton
-              ctaText={product.cta_text}
-              ctaUrl={product.cta_url}
-              ctaSubtext={product.cta_subtext}
-              variant="neon"
-              size="xl"
-            />
-          </div>
-
-          <div className="flex items-center justify-center gap-6 text-xs text-slate-400 pt-4 border-t border-slate-800">
-            <span className="flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-emerald-400" />
-              Pagamento Seguro
-            </span>
-            <span className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              {product.guarantee_days} Dias de Garantia
-            </span>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 8. FAQ Accordion */}
       {product.faqs && product.faqs.length > 0 && (
@@ -381,7 +400,7 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
       </footer>
 
       {/* 10. Sticky Bottom Bar para Mobile/Desktop */}
-      <StickyCtaBar product={product} variant="neon" />
+      <StickyCtaBar product={product} variant="neon" show={showOffer} />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
 import { ModelManagerModal } from './ModelManagerModal';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
+import { ImageUploadInput } from '../common/ImageUploadInput';
+import { VideoPlayer } from '../common/VideoPlayer';
 import {
   X,
   Save,
@@ -20,7 +22,12 @@ import {
   Check,
   Bookmark,
   AlertCircle,
-  Loader2
+  Loader2,
+  Upload,
+  Play,
+  Film,
+  Clock,
+  Volume2
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -50,9 +57,11 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
   const [headline, setHeadline] = useState(product?.headline || '');
   const [subheadline, setSubheadline] = useState(product?.subheadline || '');
-  const [heroType, setHeroType] = useState<'video' | 'image'>(product?.hero_type || 'video');
+  const [heroType, setHeroType] = useState<'video' | 'image' | 'vsl'>(product?.hero_type || 'video');
   const [heroMediaUrl, setHeroMediaUrl] = useState(product?.hero_media_url || '');
   const [badgeText, setBadgeText] = useState(product?.badge_text || 'OFERTA EXCLUSIVA');
+  const [vslPitchDelay, setVslPitchDelay] = useState<number>(product?.vsl_pitch_delay_seconds || 0);
+  const [vslAutoplay, setVslAutoplay] = useState<boolean>(product?.vsl_autoplay !== undefined ? product.vsl_autoplay : false);
 
   const [currency, setCurrency] = useState<string>(product?.currency || 'BRL');
   const [originalPrice, setOriginalPrice] = useState<number>(product?.original_price || 297);
@@ -187,6 +196,8 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     hero_type: heroType,
     hero_media_url: heroMediaUrl,
     badge_text: badgeText,
+    vsl_pitch_delay_seconds: Number(vslPitchDelay) || 0,
+    vsl_autoplay: Boolean(vslAutoplay),
     original_price: Number(originalPrice),
     promo_price: Number(promoPrice),
     installments_text: installmentsText,
@@ -212,6 +223,8 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     if (d.badge_text) setBadgeText(d.badge_text);
     if (d.hero_type) setHeroType(d.hero_type);
     if (d.hero_media_url) setHeroMediaUrl(d.hero_media_url);
+    if (d.vsl_pitch_delay_seconds !== undefined) setVslPitchDelay(d.vsl_pitch_delay_seconds);
+    if (d.vsl_autoplay !== undefined) setVslAutoplay(d.vsl_autoplay);
     if (d.currency) setCurrency(d.currency);
     if (d.original_price !== undefined) setOriginalPrice(d.original_price);
     if (d.promo_price !== undefined) setPromoPrice(d.promo_price);
@@ -261,6 +274,8 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         hero_type: heroType,
         hero_media_url: heroMediaUrl.trim(),
         badge_text: badgeText.trim(),
+        vsl_pitch_delay_seconds: Number(vslPitchDelay) || 0,
+        vsl_autoplay: Boolean(vslAutoplay),
         original_price: Number(originalPrice) || 0,
         promo_price: Number(promoPrice) || 0,
         installments_text: installmentsText.trim(),
@@ -577,37 +592,198 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                  {/* SELEÇÃO DO FORMATO DE MÍDIA */}
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Tipo de Mídia Destaque
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                        Formato de Mídia em Destaque
                       </label>
-                      <select
-                        value={heroType}
-                        onChange={(e) => setHeroType(e.target.value as any)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm"
-                      >
-                        <option value="video">Vídeo (YouTube / Vimeo)</option>
-                        <option value="image">Imagem de Capa</option>
-                      </select>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setHeroType('vsl')}
+                          className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                            heroType === 'vsl'
+                              ? 'bg-red-500/10 border-red-500/50 text-white shadow-lg shadow-red-500/10 ring-1 ring-red-500/50'
+                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase text-red-400 flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                              VSL de Vendas
+                            </span>
+                            <span className="text-[10px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded font-bold">Alta Conversão</span>
+                          </div>
+                          <p className="text-xs text-slate-400 leading-snug">
+                            Vídeo Sales Letter com Panda Video, VTurb, YouTube, MP4 e delay de pitch
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setHeroType('video')}
+                          className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                            heroType === 'video'
+                              ? 'bg-emerald-500/10 border-emerald-500/50 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/50'
+                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                              <Video className="w-3.5 h-3.5" />
+                              Vídeo Padrão
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 leading-snug">
+                            Vídeo institucional ou demonstrativo via YouTube ou Vimeo convencional
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setHeroType('image')}
+                          className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                            heroType === 'image'
+                              ? 'bg-blue-500/10 border-blue-500/50 text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/50'
+                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase text-blue-400 flex items-center gap-1.5">
+                              <Upload className="w-3.5 h-3.5" />
+                              Upload de Imagem
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 leading-snug">
+                            Upload do seu computador / celular ou link de mockup da web
+                          </p>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        URL da Mídia ({heroType === 'video' ? 'Link do YouTube ou Vimeo' : 'URL da Imagem'})
-                      </label>
-                      <input
-                        type="url"
-                        placeholder={
-                          heroType === 'video'
-                            ? 'https://www.youtube.com/watch?v=...'
-                            : 'https://images.unsplash.com/...'
-                        }
-                        value={heroMediaUrl}
-                        onChange={(e) => setHeroMediaUrl(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm font-mono"
-                      />
-                    </div>
+                    {/* SE FOR IMAGEM */}
+                    {heroType === 'image' && (
+                      <div className="pt-2">
+                        <ImageUploadInput
+                          value={heroMediaUrl}
+                          onChange={setHeroMediaUrl}
+                          label="Imagem ou Banner Principal da Página"
+                          placeholder="https://images.unsplash.com/..."
+                        />
+                      </div>
+                    )}
+
+                    {/* SE FOR VSL OU VÍDEO */}
+                    {(heroType === 'vsl' || heroType === 'video') && (
+                      <div className="space-y-4 pt-2">
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                              {heroType === 'vsl' ? 'Link ou Código Iframe da VSL' : 'Link do Vídeo (YouTube / Vimeo)'}
+                            </label>
+                            <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Panda Video</span>
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">VTurb</span>
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">YouTube</span>
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">MP4</span>
+                            </div>
+                          </div>
+                          <textarea
+                            rows={2}
+                            placeholder={
+                              heroType === 'vsl'
+                                ? 'Cole o link do vídeo ou o código <iframe ...></iframe> do Panda Video, VTurb, ConverteAI, YouTube, Vimeo ou arquivo MP4...'
+                                : 'https://www.youtube.com/watch?v=...'
+                            }
+                            value={heroMediaUrl}
+                            onChange={(e) => setHeroMediaUrl(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:border-emerald-500 focus:outline-none"
+                          />
+                          <p className="text-[11px] text-slate-500 mt-1">
+                            💡 Aceita links normais do YouTube/Vimeo/MP4 ou o código de incorporação <code className="text-emerald-400">&lt;iframe src="..."&gt;&lt;/iframe&gt;</code> completo.
+                          </p>
+                        </div>
+
+                        {/* CONFIGURAÇÕES EXCLUSIVAS DE VSL */}
+                        {heroType === 'vsl' && (
+                          <div className="p-4 rounded-xl bg-slate-900 border border-red-500/25 space-y-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold uppercase text-red-400 tracking-wider flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                Configurações de VSL (Video Sales Letter)
+                              </span>
+                              <span className="text-[11px] text-slate-400">Delay & Autoplay</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              {/* Delay do Pitch */}
+                              <div>
+                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                  Delay para Revelar Botão de Compra (Segundos)
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step={5}
+                                    placeholder="0 (Exibe imediatamente)"
+                                    value={vslPitchDelay}
+                                    onChange={(e) => setVslPitchDelay(parseInt(e.target.value, 10) || 0)}
+                                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-sm font-bold focus:border-red-500 focus:outline-none"
+                                  />
+                                  <span className="text-xs text-slate-400 whitespace-nowrap">segundos</span>
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                  {vslPitchDelay > 0
+                                    ? `⏳ Os botões de checkout serão revelados após ${Math.floor(vslPitchDelay / 60)}m ${vslPitchDelay % 60}s.`
+                                    : 'Deixe 0 para exibir os botões e preços imediatamente.'}
+                                </p>
+                              </div>
+
+                              {/* Autoplay */}
+                              <div>
+                                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                                  Reprodução Automática
+                                </label>
+                                <label className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700">
+                                  <input
+                                    type="checkbox"
+                                    checked={vslAutoplay}
+                                    onChange={(e) => setVslAutoplay(e.target.checked)}
+                                    className="w-4 h-4 rounded text-red-500 focus:ring-0 bg-slate-900 border-slate-700"
+                                  />
+                                  <span className="text-xs text-slate-300 font-semibold">
+                                    Iniciar vídeo automaticamente (Autoplay)
+                                  </span>
+                                </label>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                  Inicia o vídeo assim que o visitante carregar a página.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* PRÉ-VISUALIZAÇÃO DO PLAYER */}
+                        {heroMediaUrl && (
+                          <div className="space-y-1.5 pt-1">
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                              Pré-visualização do Player
+                            </label>
+                            <div className="max-w-md mx-auto">
+                              <VideoPlayer
+                                url={heroMediaUrl}
+                                type={heroType}
+                                title={name || 'Demonstração'}
+                                glowColor={heroType === 'vsl' ? 'red' : 'emerald'}
+                                autoplay={false}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -952,6 +1128,20 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                             }}
                             className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
                           />
+
+                          {/* Foto do Aluno (Upload ou URL) */}
+                          <div className="pt-1">
+                            <ImageUploadInput
+                              compact
+                              value={t.avatarUrl || ''}
+                              onChange={(val) => {
+                                const updated = [...testimonials];
+                                updated[idx].avatarUrl = val;
+                                setTestimonials(updated);
+                              }}
+                              label="Foto do Aluno / Avatar"
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>

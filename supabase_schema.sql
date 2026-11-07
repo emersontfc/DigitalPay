@@ -3,11 +3,15 @@
 -- Execute este script no SQL Editor do seu projeto Supabase (supabase.com)
 -- =========================================================================
 
--- Adiciona coluna de moeda caso a tabela já tenha sido criada anteriormente
+-- Adiciona colunas extras e suporte a VSL caso a tabela já tenha sido criada anteriormente
 DO $$ 
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
         ALTER TABLE public.products ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL';
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS vsl_pitch_delay_seconds INTEGER DEFAULT 0;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS vsl_autoplay BOOLEAN DEFAULT false;
+        ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_hero_type_check;
+        ALTER TABLE public.products ADD CONSTRAINT products_hero_type_check CHECK (hero_type IN ('video', 'image', 'vsl'));
     END IF;
 END $$;
 
@@ -22,9 +26,11 @@ CREATE TABLE IF NOT EXISTS public.products (
     -- Copy & Hero
     headline TEXT NOT NULL,
     subheadline TEXT,
-    hero_type TEXT NOT NULL DEFAULT 'video' CHECK (hero_type IN ('video', 'image')),
+    hero_type TEXT NOT NULL DEFAULT 'video' CHECK (hero_type IN ('video', 'image', 'vsl')),
     hero_media_url TEXT,
     badge_text TEXT DEFAULT 'Oferta Exclusiva por Tempo Limitado',
+    vsl_pitch_delay_seconds INTEGER DEFAULT 0,
+    vsl_autoplay BOOLEAN DEFAULT false,
     
     -- Preço e Checkout
     currency TEXT NOT NULL DEFAULT 'BRL',

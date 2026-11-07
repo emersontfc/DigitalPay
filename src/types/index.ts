@@ -32,9 +32,13 @@ export interface Product {
   // Hero & Copy
   headline: string;
   subheadline: string;
-  hero_type: 'video' | 'image';
-  hero_media_url: string; // YouTube embed / mp4 / image url
+  hero_type: 'video' | 'image' | 'vsl';
+  hero_media_url: string; // YouTube embed / mp4 / image url / Panda / VTurb / Data URL
   badge_text: string;
+  
+  // VSL & Vídeo Otimizado
+  vsl_pitch_delay_seconds?: number; // Delay em segundos para exibir botões de checkout e oferta
+  vsl_autoplay?: boolean; // Autoplay do vídeo VSL
   
   // Pricing & Checkout
   currency?: string; // BRL (R$), USD ($), EUR (€), AOA (Kz), MZN (MT), etc.

@@ -6,11 +6,13 @@ import { formatPrice } from '../../utils/currency';
 interface StickyCtaBarProps {
   product: Product;
   variant?: 'neon' | 'luxury' | 'gold';
+  show?: boolean;
 }
 
 export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
   product,
   variant = 'neon',
+  show = true,
 }) => {
   const [visible, setVisible] = useState(false);
 
@@ -28,7 +30,7 @@ export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!visible) return null;
+  if (!show || !visible) return null;
 
   const bgStyles = {
     neon: 'bg-slate-950/95 border-emerald-500/30 text-white',
