@@ -12,8 +12,6 @@ import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
-import { AISettingsModal } from '../../components/admin/AISettingsModal';
-import { aiOrchestrator } from '../../services/ai/aiOrchestrator';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Plus,
@@ -33,10 +31,7 @@ import {
   UserCheck,
   Users,
   Bookmark,
-  Wand2,
-  ArrowRight,
-  Key,
-  Clock
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -47,16 +42,14 @@ export const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTemplate, setFilterTemplate] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modais
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
-  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
-  const [aiStatus, setAiStatus] = useState(() => aiOrchestrator.getStatus());
 
   // Status Supabase
   const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConfigured());
@@ -113,10 +106,20 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleSaveProduct = async (productData: Partial<Product>) => {
-    await saveProduct(productData);
-    await loadData();
-    setIsEditorOpen(false);
-    setEditingProduct(null);
+    try {
+      setLoading(true);
+      await saveProduct(productData);
+      await loadData();
+      setIsEditorOpen(false);
+      setEditingProduct(null);
+      setToastMessage(`Página "${productData.name}" gravada com sucesso!`);
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch (err: any) {
+      console.error('Erro ao gravar produto:', err);
+      alert('Erro ao gravar página: ' + (err?.message || 'Falha ao salvar'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteProduct = async (id: string, name: string) => {
@@ -187,19 +190,8 @@ export const AdminDashboard: React.FC = () => {
               </Link>
             </div>
 
-            {/* Lado Direito da Linha 1: Status DB, Config IA Rápida, Perfil e Sair */}
+            {/* Lado Direito da Linha 1: Status DB, Perfil e Sair */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Botão Chave de IA (Super Admin / Admin) */}
-              <button
-                onClick={() => setIsAISettingsOpen(true)}
-                title="Configurar Chave e Provedores de IA"
-                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Key className="w-3.5 h-3.5 text-purple-400" />
-                <span className="hidden sm:inline">Chave de IA</span>
-                <span className={`w-2 h-2 rounded-full ${aiStatus.isConfigured ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} title={`Motor ativo: ${aiStatus.providerName}`} />
-              </button>
-
               {/* Configuração Discreta do Banco */}
               <button
                 onClick={() => setIsSupabaseModalOpen(true)}
@@ -231,29 +223,16 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Linha 2: Barra de Ações Responsiva (Scroll horizontal suave no mobile sem quebra feia) */}
           <div className="py-2.5 border-t border-slate-800/70 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-            {/* AI Page Builder */}
-            <Link
-              to="/admin/ai-builder"
-              className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center gap-1.5 shrink-0"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-purple-200 animate-pulse" />
-              <span>AI Page Builder</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[9px] uppercase font-black">
-                Novo
-              </span>
-            </Link>
-
-            {/* Botão Criar Página Manual (Em Breve) */}
+            {/* Botão Principal: Criar Nova Página */}
             <button
-              onClick={() => setIsComingSoonOpen(true)}
-              className="px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer group"
-              title="Criador Manual de Páginas - Disponível Brevemente"
+              onClick={() => {
+                setEditingProduct(null);
+                setIsEditorOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2 shrink-0 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors" />
-              <span>Criar Página</span>
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider">
-                Brevemente
-              </span>
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Criar Nova Página</span>
             </button>
 
             {/* Biblioteca de Modelos */}
@@ -336,47 +315,44 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Banner de Destaque do AI Builder */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950/50 via-slate-900 to-slate-950 border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+        {/* Banner Construtor Manual de Páginas */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
-              <Sparkles className="w-6 h-6 animate-pulse" />
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <ShoppingBag className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white flex flex-wrap items-center gap-2">
-                <span>DigitalPay AI Page Builder</span>
-                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                  Novo
-                </span>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.isConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                  <span>Motor: {aiStatus.providerName}</span>
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <span>Construtor de Páginas Digitall Pay</span>
+                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Pronto para Vender
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Crie páginas de vendas completas, com copywriting persuasivo e design responsivo com simples instruções de IA.
+                Monte páginas de vendas profissionais no estilo Kiwify com checkout direto, vídeos, depoimentos reais e suporte via WhatsApp.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex items-center gap-2.5 w-full md:w-auto">
             <button
-              onClick={() => setIsAISettingsOpen(true)}
+              onClick={() => setIsModelModalOpen(true)}
               className="flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-purple-300 border border-purple-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-              title="Configurar Chave de API da IA"
             >
-              <Key className="w-3.5 h-3.5 text-purple-400" />
-              <span>Configurar IA</span>
+              <Bookmark className="w-3.5 h-3.5" />
+              <span>Modelos Prontos</span>
             </button>
 
-            <Link
-              to="/admin/ai-builder"
-              className="flex-1 md:flex-initial px-5 py-2.5 rounded-xl text-xs font-black bg-purple-500 hover:bg-purple-400 text-slate-950 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-md cursor-pointer"
+            <button
+              onClick={() => {
+                setEditingProduct(null);
+                setIsEditorOpen(true);
+              }}
+              className="flex-1 md:flex-initial px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] cursor-pointer"
             >
-              <Wand2 className="w-3.5 h-3.5" />
-              <span>Acessar AI Builder</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Criar Nova Página</span>
+            </button>
           </div>
         </div>
 
@@ -444,13 +420,16 @@ export const AdminDashboard: React.FC = () => {
                   : 'Comece criando o primeiro produto para gerar a sua página de alta conversão!'}
               </p>
             </div>
-            <Link
-              to="/admin/ai-builder/new"
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 hover:opacity-95 text-slate-950 inline-flex items-center gap-2 shadow-lg cursor-pointer"
+            <button
+              onClick={() => {
+                setEditingProduct(null);
+                setIsEditorOpen(true);
+              }}
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 inline-flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-purple-200 animate-pulse" />
-              <span>Criar Primeira Página com IA</span>
-            </Link>
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Criar Primeira Página Agora</span>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -638,64 +617,11 @@ export const AdminDashboard: React.FC = () => {
         />
       )}
 
-      {isAISettingsOpen && (
-        <AISettingsModal
-          isOpen={isAISettingsOpen}
-          onClose={() => {
-            setIsAISettingsOpen(false);
-            setAiStatus(aiOrchestrator.getStatus());
-          }}
-          onSaved={() => {
-            setAiStatus(aiOrchestrator.getStatus());
-          }}
-        />
-      )}
-
-      {/* Modal Brevemente para Criador Manual */}
-      {isComingSoonOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden">
-            {/* Glow decorativo */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] pointer-events-none rounded-full" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 blur-[80px] pointer-events-none rounded-full" />
-
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center justify-center mx-auto mb-4 relative z-10 shadow-lg">
-              <Clock className="w-7 h-7" />
-            </div>
-
-            <span className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider mb-2 relative z-10">
-              Disponível Brevemente
-            </span>
-
-            <h3 className="text-xl font-black text-white relative z-10 mb-2">
-              Criador Manual de Páginas
-            </h3>
-
-            <p className="text-xs text-slate-400 leading-relaxed relative z-10 mb-6">
-              O construtor manual está sendo completamente atualizado para oferecer novos blocos visuais, integração com novos gateways de pagamento e salvamento sem falhas.
-              <br /><br />
-              Por enquanto, utilize o <strong>DigitalPay AI Builder</strong> para gerar e publicar páginas de vendas completas em segundos com inteligência artificial!
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 relative z-10">
-              <button
-                type="button"
-                onClick={() => setIsComingSoonOpen(false)}
-                className="w-full sm:flex-1 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Entendi, Fechar
-              </button>
-
-              <Link
-                to="/admin/ai-builder/new"
-                onClick={() => setIsComingSoonOpen(false)}
-                className="w-full sm:flex-1 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(168,85,247,0.35)] cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-purple-200" />
-                <span>Usar AI Builder</span>
-              </Link>
-            </div>
-          </div>
+      {/* Toast de Notificação de Sucesso */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xs sm:text-sm shadow-2xl flex items-center gap-2.5 animate-in slide-in-from-bottom duration-200">
+          <Check className="w-4 h-4 stroke-[3]" />
+          <span>{toastMessage}</span>
         </div>
       )}
     </div>

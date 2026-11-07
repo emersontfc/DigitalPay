@@ -64,6 +64,24 @@ export function isSupabaseConfigured(): boolean {
 }
 
 // -------------------------------------------------------------
+// HELPER SEGURO DE GERAÇÃO DE UUID
+// -------------------------------------------------------------
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      // fallback
+    }
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+// -------------------------------------------------------------
 // OPERAÇÕES LOCAIS (FALLBACK DE ALTA CONFIABILIDADE)
 // -------------------------------------------------------------
 function getLocalProducts(): Product[] {
@@ -105,9 +123,10 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
 }
 
 export async function fetchProducts(): Promise<Product[]> {
+  const local = getLocalProducts();
   const client = getSupabaseClient();
   if (!client) {
-    return getLocalProducts();
+    return local;
   }
 
   try {
@@ -117,26 +136,33 @@ export async function fetchProducts(): Promise<Product[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('Erro ao buscar do Supabase, usando fallback local:', error.message);
-      return getLocalProducts();
+      console.warn('Erro ao buscar do Supabase, usando dados locais:', error.message);
+      return local;
     }
 
-    if (!data || data.length === 0) {
-      return getLocalProducts();
-    }
+    // Mescla dados do Supabase com os dados locais garantindo que nenhuma página gravada seja perdida
+    const map = new Map<string, Product>();
+    (data || []).forEach((p: Product) => map.set(p.id, p));
+    local.forEach((p: Product) => {
+      if (!map.has(p.id)) {
+        map.set(p.id, p);
+      }
+    });
 
-    return data as Product[];
+    const merged = Array.from(map.values());
+    saveLocalProducts(merged);
+    return merged;
   } catch (err) {
-    console.warn('Falha de rede Supabase, usando fallback local:', err);
-    return getLocalProducts();
+    console.warn('Falha de rede Supabase, usando dados locais:', err);
+    return local;
   }
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
+  const local = getLocalProducts().find(p => p.slug === slug);
   const client = getSupabaseClient();
   if (!client) {
-    const products = getLocalProducts();
-    return products.find(p => p.slug === slug) || null;
+    return local || null;
   }
 
   try {
@@ -147,32 +173,34 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
       .maybeSingle();
 
     if (error || !data) {
-      const local = getLocalProducts().find(p => p.slug === slug);
       return local || null;
     }
 
     return data as Product;
   } catch {
-    return getLocalProducts().find(p => p.slug === slug) || null;
+    return local || null;
   }
 }
 
 export async function saveProduct(product: Partial<Product> & { id?: string }): Promise<Product> {
   const now = new Date().toISOString();
   const client = getSupabaseClient();
-  const targetId = product.id || crypto.randomUUID();
+  const targetId = product.id || generateUUID();
+
+  const rawSlug = (product.slug || product.name || 'produto')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  const cleanSlug = rawSlug || `produto-${Date.now().toString().slice(-4)}`;
 
   const fullProduct: Product = {
     id: targetId,
     name: product.name || 'Novo Produto Digital',
-    slug: (product.slug || product.name || 'produto')
-      .toLowerCase()
-      .trim()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, ''),
+    slug: cleanSlug,
     status: product.status || 'active',
     template: product.template || 'kiwify-neon',
     currency: product.currency || 'BRL',
@@ -198,7 +226,7 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     updated_at: now,
   };
 
-  // Sempre sincroniza no LocalStorage como cache e fallback
+  // 1. Sempre grava primeiro no LocalStorage (garante que nada se perca)
   const localList = getLocalProducts();
   const existingIdx = localList.findIndex(p => p.id === fullProduct.id);
   if (existingIdx >= 0) {
@@ -208,18 +236,18 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
   }
   saveLocalProducts(localList);
 
+  // 2. Se o Supabase estiver configurado, sincroniza na nuvem
   if (client) {
     try {
-      // Clona e remove campos que possam não existir na tabela se o schema não tiver sido atualizado
       const { error } = await client
         .from('products')
         .upsert(fullProduct, { onConflict: 'id' });
 
       if (error) {
-        console.error('Aviso ao sincronizar produto no Supabase:', error.message);
+        console.warn('Aviso ao sincronizar produto no Supabase (salvo localmente com sucesso):', error.message);
       }
     } catch (e) {
-      console.error('Falha de conexão Supabase ao salvar:', e);
+      console.warn('Falha de conexão Supabase ao salvar (salvo localmente com sucesso):', e);
     }
   }
 

@@ -434,7 +434,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               </div>
             </div>
           ) : (
-            <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
+            <form id="product-form" noValidate onSubmit={handleSubmit} className="space-y-6">
               {/* TAB 1: GERAL & TEMPLATE */}
               {activeTab === 'geral' && (
                 <div className="space-y-6">
@@ -442,13 +442,13 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 to-slate-900 border border-purple-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                        <Sparkles className="w-5 h-5" />
+                        <Bookmark className="w-5 h-5" />
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm flex items-center gap-2">
                           Biblioteca de Modelos & Presets de Venda
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold uppercase">
-                            Novo Recurso
+                            Modelos Prontos
                           </span>
                         </h4>
                         <p className="text-xs text-slate-400">
@@ -457,20 +457,13 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <a
-                        href="/admin/ai-builder/new"
-                        className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90 text-white transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Criar com IA</span>
-                      </a>
                       <button
                         type="button"
                         onClick={() => setIsModelModalOpen(true)}
-                        className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer border border-purple-500/30"
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md cursor-pointer border border-purple-500/30"
                       >
                         <Bookmark className="w-3.5 h-3.5" />
-                        <span>Modelos Prontos</span>
+                        <span>Ver Modelos Prontos</span>
                       </button>
                     </div>
                   </div>
@@ -1023,14 +1016,21 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-          >
-            Cancelar
-          </button>
+        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              Cancelar
+            </button>
+            {errorMessage && (
+              <span className="text-xs text-rose-400 font-semibold truncate max-w-xs sm:max-w-md">
+                ⚠️ {errorMessage}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
