@@ -68,6 +68,9 @@ export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
           <CheckoutButton
             ctaText={product.cta_text}
             ctaUrl={product.cta_url}
+            productName={product.name}
+            promoPrice={product.promo_price}
+            currency={product.currency}
             variant={variant}
             size="normal"
             fullWidth={true}

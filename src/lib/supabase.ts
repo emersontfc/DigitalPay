@@ -224,6 +224,9 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     modules: product.modules || [],
     testimonials: product.testimonials || [],
     faqs: product.faqs || [],
+    whatsapp_number: product.whatsapp_number ? product.whatsapp_number.trim() : undefined,
+    whatsapp_message: product.whatsapp_message ? product.whatsapp_message.trim() : undefined,
+    facebook_pixel_id: product.facebook_pixel_id ? product.facebook_pixel_id.trim() : undefined,
     created_at: product.created_at || now,
     updated_at: now,
   };

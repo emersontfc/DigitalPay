@@ -97,6 +97,9 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
                 ctaText={product.cta_text}
                 ctaUrl={product.cta_url}
                 ctaSubtext={product.cta_subtext}
+                promoPrice={product.promo_price}
+                productName={product.name}
+                currency={product.currency}
                 variant="gold"
                 size="xl"
               />
@@ -281,6 +284,9 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
               ctaText={product.cta_text}
               ctaUrl={product.cta_url}
               ctaSubtext={product.cta_subtext}
+              promoPrice={product.promo_price}
+              productName={product.name}
+              currency={product.currency}
               variant="gold"
               size="xl"
             />

@@ -12,6 +12,7 @@ import { ProductEditorModal } from '../../components/admin/ProductEditorModal';
 import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal';
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
+import { ChangePasswordModal } from '../../components/admin/ChangePasswordModal';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Plus,
@@ -31,7 +32,8 @@ import {
   UserCheck,
   Users,
   Bookmark,
-  ArrowRight
+  ArrowRight,
+  KeyRound
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -50,6 +52,7 @@ export const AdminDashboard: React.FC = () => {
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // Status Supabase
   const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConfigured());
@@ -77,6 +80,9 @@ export const AdminDashboard: React.FC = () => {
       cta_text: d.cta_text || 'QUERO GARANTIR MINHA VAGA AGORA',
       cta_url: d.cta_url || 'https://pay.kiwify.com.br',
       cta_subtext: d.cta_subtext || '🔒 Compra 100% Segura • Acesso Imediato',
+      facebook_pixel_id: d.facebook_pixel_id,
+      whatsapp_number: d.whatsapp_number,
+      whatsapp_message: d.whatsapp_message,
       guarantee_days: d.guarantee_days || 7,
       countdown_enabled: d.countdown_enabled !== undefined ? d.countdown_enabled : true,
       countdown_minutes: d.countdown_minutes || 15,
@@ -201,6 +207,15 @@ export const AdminDashboard: React.FC = () => {
                 className="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <Settings className="w-4 h-4" />
+              </button>
+
+              {/* Alterar Senha */}
+              <button
+                onClick={() => setIsPasswordModalOpen(true)}
+                title="Alterar Minha Senha"
+                className="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" />
               </button>
 
               {/* Perfil do Usuário & Logout */}
@@ -616,6 +631,13 @@ export const AdminDashboard: React.FC = () => {
           onClose={() => setIsModelModalOpen(false)}
           onApplyModel={handleApplyModelFromDashboard}
           currentProductData={{}}
+        />
+      )}
+
+      {isPasswordModalOpen && (
+        <ChangePasswordModal
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
         />
       )}
 

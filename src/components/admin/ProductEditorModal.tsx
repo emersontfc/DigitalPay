@@ -27,7 +27,9 @@ import {
   Play,
   Film,
   Clock,
-  Volume2
+  Volume2,
+  BarChart3,
+  MessageCircle
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -70,6 +72,9 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [ctaText, setCtaText] = useState(product?.cta_text || 'QUERO GARANTIR MINHA VAGA AGORA');
   const [ctaUrl, setCtaUrl] = useState(product?.cta_url || 'https://pay.kiwify.com.br');
   const [ctaSubtext, setCtaSubtext] = useState(product?.cta_subtext || '🔒 Compra 100% Segura • Acesso Imediato');
+  const [facebookPixelId, setFacebookPixelId] = useState(product?.facebook_pixel_id || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(product?.whatsapp_number || '');
+  const [whatsappMessage, setWhatsappMessage] = useState(product?.whatsapp_message || '');
 
   const [guaranteeDays, setGuaranteeDays] = useState<number>(product?.guarantee_days || 7);
   const [countdownEnabled, setCountdownEnabled] = useState<boolean>(product?.countdown_enabled !== undefined ? product.countdown_enabled : true);
@@ -204,6 +209,9 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     cta_text: ctaText || 'QUERO GARANTIR MINHA VAGA',
     cta_url: ctaUrl || '#',
     cta_subtext: ctaSubtext,
+    facebook_pixel_id: facebookPixelId,
+    whatsapp_number: whatsappNumber,
+    whatsapp_message: whatsappMessage,
     guarantee_days: Number(guaranteeDays),
     countdown_enabled: countdownEnabled,
     countdown_minutes: Number(countdownMinutes),
@@ -232,6 +240,9 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     if (d.cta_text) setCtaText(d.cta_text);
     if (d.cta_url) setCtaUrl(d.cta_url);
     if (d.cta_subtext) setCtaSubtext(d.cta_subtext);
+    if (d.facebook_pixel_id !== undefined) setFacebookPixelId(d.facebook_pixel_id);
+    if (d.whatsapp_number !== undefined) setWhatsappNumber(d.whatsapp_number);
+    if (d.whatsapp_message !== undefined) setWhatsappMessage(d.whatsapp_message);
     if (d.guarantee_days !== undefined) setGuaranteeDays(d.guarantee_days);
     if (d.countdown_enabled !== undefined) setCountdownEnabled(d.countdown_enabled);
     if (d.countdown_minutes !== undefined) setCountdownMinutes(d.countdown_minutes);
@@ -282,6 +293,9 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         cta_text: ctaText.trim() || 'QUERO GARANTIR MINHA VAGA AGORA',
         cta_url: ctaUrl.trim() || 'https://pay.kiwify.com.br',
         cta_subtext: ctaSubtext.trim(),
+        facebook_pixel_id: facebookPixelId.trim() || undefined,
+        whatsapp_number: whatsappNumber.trim() || undefined,
+        whatsapp_message: whatsappMessage.trim() || undefined,
         guarantee_days: Number(guaranteeDays) || 7,
         countdown_enabled: countdownEnabled,
         countdown_minutes: Number(countdownMinutes) || 15,
@@ -901,6 +915,79 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                           value={ctaSubtext}
                           onChange={(e) => setCtaSubtext(e.target.value)}
                           className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO META PIXEL & RASTREAMENTO */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-blue-400" />
+                        <span>Rastreamento de Tráfego: Meta Pixel (Facebook & Instagram Ads)</span>
+                      </h4>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        Otimização de ROI
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Dispara automaticamente os eventos oficiais <code className="text-blue-300">PageView</code> ao abrir a página e <code className="text-emerald-300">InitiateCheckout</code> no clique do botão de compra.
+                    </p>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        ID do Pixel do Facebook (Apenas os Números)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 104928392019283"
+                        value={facebookPixelId}
+                        onChange={(e) => setFacebookPixelId(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-blue-400 font-mono text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Deixe em branco caso não vá veicular anúncios de tráfego pago no Facebook/Instagram.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO SUPORTE & WHATSAPP FLUTUANTE */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                        <span>Botão Flutuante de Suporte via WhatsApp</span>
+                      </h4>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        +40% Conversão
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Ativa um botão oficial do WhatsApp flutuando no canto inferior direito da página de vendas para tirar dúvidas e fechar pagamentos via M-Pesa, E-Mola, Multicaixa ou PIX.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                          Número do WhatsApp (Com DDI + DDD)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: 258841234567 ou 5511999998888"
+                          value={whatsappNumber}
+                          onChange={(e) => setWhatsappNumber(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-sm focus:border-emerald-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                          Mensagem Inicial de Contato
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: Olá! Gostaria de tirar uma dúvida sobre a oferta..."
+                          value={whatsappMessage}
+                          onChange={(e) => setWhatsappMessage(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none"
                         />
                       </div>
                     </div>

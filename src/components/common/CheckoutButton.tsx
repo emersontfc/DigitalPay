@@ -1,6 +1,7 @@
 import React from 'react';
 import confetti from 'canvas-confetti';
 import { ShoppingCart, ShieldCheck, Zap, ArrowRight, Lock } from 'lucide-react';
+import { trackInitiateCheckout } from '../../utils/pixel';
 
 interface CheckoutButtonProps {
   ctaText: string;
@@ -8,6 +9,8 @@ interface CheckoutButtonProps {
   ctaSubtext?: string;
   promoPrice?: number;
   installmentsText?: string;
+  productName?: string;
+  currency?: string;
   variant?: 'neon' | 'luxury' | 'gold';
   size?: 'lg' | 'xl' | 'normal';
   fullWidth?: boolean;
@@ -20,13 +23,18 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
   ctaSubtext,
   promoPrice,
   installmentsText,
+  productName,
+  currency = 'BRL',
   variant = 'neon',
   size = 'xl',
   fullWidth = true,
   className = '',
 }) => {
   const handleClick = (e: React.MouseEvent) => {
-    // Dispara efeito de confetes
+    // 1. Rastreamento oficial Meta Pixel
+    trackInitiateCheckout(productName, promoPrice, currency);
+
+    // 2. Dispara efeito de confetes
     try {
       confetti({
         particleCount: 80,
@@ -37,7 +45,7 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
       // Ignora silenciosamente se o canvas não estiver disponível
     }
 
-    // Se a URL for um link válido, abre em nova aba
+    // 3. Se a URL for um link válido, abre em nova aba
     if (ctaUrl) {
       window.open(ctaUrl, '_blank', 'noopener,noreferrer');
     }

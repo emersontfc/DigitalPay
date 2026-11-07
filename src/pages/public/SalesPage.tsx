@@ -3,12 +3,25 @@ import { useParams, Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { fetchProductBySlug } from '../../lib/supabase';
 import { TemplateRenderer } from '../../components/templates/TemplateRenderer';
+import { FloatingWhatsAppButton } from '../../components/common/FloatingWhatsAppButton';
+import { initFacebookPixel } from '../../utils/pixel';
 import { RefreshCw, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export const SalesPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Helper para atualizar ou criar meta tag
+  const setMetaTag = (property: string, content: string) => {
+    let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('property', property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
 
   useEffect(() => {
     async function load() {
@@ -18,7 +31,21 @@ export const SalesPage: React.FC = () => {
         const data = await fetchProductBySlug(slug);
         setProduct(data);
         if (data) {
+          // 1. Atualizar Título da Página
           document.title = `${data.name} | Digitall Pay`;
+
+          // 2. Atualizar Open Graph (WhatsApp, Facebook, Telegram)
+          setMetaTag('og:title', data.headline || data.name);
+          setMetaTag('og:description', data.subheadline || 'Acesse a oferta exclusiva agora.');
+          if (data.hero_media_url && !data.hero_media_url.includes('youtube') && !data.hero_media_url.includes('vimeo')) {
+            setMetaTag('og:image', data.hero_media_url);
+          }
+          setMetaTag('og:url', window.location.href);
+
+          // 3. Inicializar Meta Pixel se configurado
+          if (data.facebook_pixel_id) {
+            initFacebookPixel(data.facebook_pixel_id);
+          }
         }
       } catch (err) {
         console.error('Erro ao buscar página:', err);
@@ -41,7 +68,17 @@ export const SalesPage: React.FC = () => {
 
   // Renderizar página clássica
   if (product) {
-    return <TemplateRenderer product={product} />;
+    return (
+      <>
+        <TemplateRenderer product={product} />
+        {/* Botão de Suporte WhatsApp Flutuante */}
+        <FloatingWhatsAppButton
+          whatsappNumber={product.whatsapp_number}
+          whatsappMessage={product.whatsapp_message}
+          productName={product.name}
+        />
+      </>
+    );
   }
 
   return (

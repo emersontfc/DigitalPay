@@ -10,6 +10,9 @@ BEGIN
         ALTER TABLE public.products ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL';
         ALTER TABLE public.products ADD COLUMN IF NOT EXISTS vsl_pitch_delay_seconds INTEGER DEFAULT 0;
         ALTER TABLE public.products ADD COLUMN IF NOT EXISTS vsl_autoplay BOOLEAN DEFAULT false;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS facebook_pixel_id TEXT;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS whatsapp_number TEXT;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS whatsapp_message TEXT;
         ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_hero_type_check;
         ALTER TABLE public.products ADD CONSTRAINT products_hero_type_check CHECK (hero_type IN ('video', 'image', 'vsl'));
     END IF;
@@ -51,6 +54,11 @@ CREATE TABLE IF NOT EXISTS public.products (
     modules JSONB NOT NULL DEFAULT '[]'::jsonb,
     testimonials JSONB NOT NULL DEFAULT '[]'::jsonb,
     faqs JSONB NOT NULL DEFAULT '[]'::jsonb,
+    
+    -- Extras de Conversão e Rastreamento
+    whatsapp_number TEXT,
+    whatsapp_message TEXT,
+    facebook_pixel_id TEXT,
     
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,

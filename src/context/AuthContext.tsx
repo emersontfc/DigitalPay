@@ -26,6 +26,7 @@ interface AuthContextType {
   approveUser: (userId: string) => Promise<void>;
   rejectUser: (userId: string) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
+  changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   pendingCount: number;
 }
 
@@ -320,6 +321,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAllUsers(list);
   };
 
+  const changePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'Usuário não autenticado.' };
+    const clean = newPassword.trim();
+    if (clean.length < 6) {
+      return { success: false, error: 'A nova senha deve ter no mínimo 6 caracteres.' };
+    }
+
+    const updatedUser = { ...user, password: clean };
+
+    // 1. Atualiza no localStorage
+    const users = getLocalUsers();
+    const idx = users.findIndex(u => u.email.toLowerCase() === user.email.toLowerCase());
+    if (idx >= 0) {
+      users[idx] = updatedUser;
+    } else {
+      users.push(updatedUser);
+    }
+    saveLocalUsers(users);
+    localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+
+    // 2. Atualiza no Supabase se configurado
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase
+          .from('admin_users')
+          .update({ password: clean, updated_at: new Date().toISOString() })
+          .eq('email', user.email);
+      } catch (e) {
+        console.warn('Erro ao atualizar senha no Supabase:', e);
+      }
+    }
+
+    return { success: true };
+  };
+
   const pendingCount = allUsers.filter(u => u.status === 'pending').length;
 
   return (
@@ -334,6 +372,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         approveUser,
         rejectUser,
         deleteUser,
+        changePassword,
         pendingCount,
       }}
     >
