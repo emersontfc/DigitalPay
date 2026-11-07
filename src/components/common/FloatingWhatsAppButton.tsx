@@ -53,3 +53,4 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
     </div>
   );
 };
+

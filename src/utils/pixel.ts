@@ -64,3 +64,4 @@ export function trackInitiateCheckout(productName?: string, value?: number, curr
     }
   }
 }
+

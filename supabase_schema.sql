@@ -74,12 +74,14 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 -- 4. Políticas de Acesso
 -- Permitir leitura pública de produtos ativos (para os compradores na página de vendas)
+DROP POLICY IF EXISTS "Public Read Access for Active Products" ON public.products;
 CREATE POLICY "Public Read Access for Active Products" 
 ON public.products 
 FOR SELECT 
 USING (true);
 
 -- Permitir criação, edição e exclusão (para o painel de admin da DigitalPay)
+DROP POLICY IF EXISTS "Admin Full Access Products" ON public.products;
 CREATE POLICY "Admin Full Access Products" 
 ON public.products 
 FOR ALL 
@@ -95,7 +97,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER on_products_updated
+DROP TRIGGER IF EXISTS on_products_updated ON public.products;
+CREATE TRIGGER on_products_updated
     BEFORE UPDATE ON public.products
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
