@@ -5,7 +5,7 @@ import { TemplateRenderer } from '../templates/TemplateRenderer';
 import { ModelManagerModal } from './ModelManagerModal';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import { ImageUploadInput } from '../common/ImageUploadInput';
-import { VideoPlayer } from '../common/VideoPlayer';
+import { VideoPlayer, resolveVideoSource } from '../common/VideoPlayer';
 import {
   X,
   Save,
@@ -697,28 +697,44 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
                             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                              {heroType === 'vsl' ? 'Link ou Código Iframe da VSL' : 'Link do Vídeo (YouTube / Vimeo)'}
+                              {heroType === 'vsl' ? 'Código Embed ou Link da VSL (VTurb / Panda / YouTube)' : 'Link ou Código do Vídeo'}
                             </label>
                             <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">VTurb 100%</span>
                               <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Panda Video</span>
-                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">VTurb</span>
                               <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">YouTube</span>
-                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">MP4</span>
+                              <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Vimeo / MP4</span>
                             </div>
                           </div>
                           <textarea
-                            rows={2}
+                            rows={3}
                             placeholder={
                               heroType === 'vsl'
-                                ? 'Cole o link do vídeo ou o código <iframe ...></iframe> do Panda Video, VTurb, ConverteAI, YouTube, Vimeo ou arquivo MP4...'
+                                ? 'Cole aqui o código do VTurb (script ou iframe completo), link do Panda Video, YouTube, Vimeo ou arquivo MP4...'
                                 : 'https://www.youtube.com/watch?v=...'
                             }
                             value={heroMediaUrl}
                             onChange={(e) => setHeroMediaUrl(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-mono focus:border-emerald-500 focus:outline-none"
+                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs sm:text-sm font-mono focus:border-emerald-500 focus:outline-none"
                           />
-                          <p className="text-[11px] text-slate-500 mt-1">
-                            💡 Aceita links normais do YouTube/Vimeo/MP4 ou o código de incorporação <code className="text-emerald-400">&lt;iframe src="..."&gt;&lt;/iframe&gt;</code> completo.
+
+                          {/* Indicador de reconhecimento inteligente de Player */}
+                          {heroMediaUrl.trim() && (
+                            <div className="mt-2 flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="font-bold text-white">
+                                  {resolveVideoSource(heroMediaUrl, vslAutoplay).detectedLabel || 'Código Reconhecido'}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                                Integrado & Pronto
+                              </span>
+                            </div>
+                          )}
+
+                          <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                            💡 <strong className="text-emerald-400">Suporte Total ao VTurb:</strong> Você pode colar o código de script completo do VTurb (com a tag <code className="text-slate-300">&lt;script&gt;</code> e <code className="text-slate-300">&lt;div id="vid_..."&gt;</code>), o link direto do player (<code className="text-slate-300">embed.html</code> ou <code className="text-slate-300">player.js</code>), ou tags <code className="text-slate-300">&lt;iframe&gt;</code> do Panda Video e YouTube. O sistema converte e renderiza automaticamente.
                           </p>
                         </div>
 
