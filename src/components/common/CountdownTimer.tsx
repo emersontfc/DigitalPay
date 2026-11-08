@@ -105,26 +105,26 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   };
 
   return (
-    <div className={`w-full py-2.5 px-4 backdrop-blur-md border-b flex flex-wrap items-center justify-center gap-3 text-sm font-medium transition-all ${variantStyles.bar}`}>
-      <div className="flex items-center gap-2 font-semibold">
-        <Clock className="w-4 h-4 animate-spin text-inherit" style={{ animationDuration: '8s' }} />
-        <span>{label}</span>
+    <div className={`w-full py-2 sm:py-2.5 px-3 sm:px-4 backdrop-blur-md border-b flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm font-medium transition-all ${variantStyles.bar}`}>
+      <div className="flex items-center gap-1.5 sm:gap-2 font-semibold text-center">
+        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin text-inherit shrink-0" style={{ animationDuration: '8s' }} />
+        <span className="leading-tight">{label}</span>
       </div>
 
-      <div className="flex items-center gap-1.5 font-mono text-base font-bold">
+      <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs sm:text-base font-bold shrink-0">
         {hours > 0 && (
           <>
-            <div className={`px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
+            <div className={`px-1.5 sm:px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
               {pad(hours)}
             </div>
             <span>:</span>
           </>
         )}
-        <div className={`px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
+        <div className={`px-1.5 sm:px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
           {pad(minutes)}
         </div>
         <span className="animate-pulse">:</span>
-        <div className={`px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
+        <div className={`px-1.5 sm:px-2 py-0.5 rounded ${variantStyles.digitBox}`}>
           {pad(seconds)}
         </div>
       </div>

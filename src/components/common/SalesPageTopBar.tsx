@@ -2,7 +2,7 @@ import React from 'react';
 import { BrandLogo } from './BrandLogo';
 import { LanguageSelector } from './LanguageSelector';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
-import { ShieldCheck, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 interface SalesPageTopBarProps {
   variant?: 'neon' | 'luxury' | 'gold' | 'cyan' | 'crimson' | 'rose' | 'blue' | 'sunset' | 'violet' | 'emerald' | 'noir' | string;
@@ -15,6 +15,7 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
 }) => {
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+
   const styles = ({
     neon: {
       bar: 'bg-[#07090e]/95 border-b border-slate-800/80',
@@ -78,8 +79,8 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
   };
 
   return (
-    <div className={`w-full py-2.5 px-4 sm:px-6 ${styles.bar} backdrop-blur-md sticky top-0 z-30 transition-all`}>
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+    <div className={`w-full py-2 sm:py-2.5 px-3.5 sm:px-6 ${styles.bar} backdrop-blur-md sticky top-0 z-30 transition-all`}>
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
         {/* Logo Digitall Pay no Topo */}
         <div className="flex items-center gap-2">
           <BrandLogo
@@ -91,14 +92,9 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
 
         {/* Lado Direito: Selo de Segurança + Seletor de Idioma & Moeda */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles.badge}`}>
+          <div className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles.badge}`}>
             <Lock className="w-3 h-3" />
             <span>{t.security_badge}</span>
-          </div>
-
-          <div className="md:hidden flex items-center gap-1 text-[10px] font-bold text-slate-400">
-            <ShieldCheck className={`w-3.5 h-3.5 ${styles.icon}`} />
-            <span>{t.security_short}</span>
           </div>
 
           {showLanguageSelector && (
@@ -109,4 +105,3 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
     </div>
   );
 };
-

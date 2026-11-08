@@ -1,7 +1,15 @@
-import { Product, SupportedLanguage, ProductTranslation, ModuleItem, FaqItem, Testimonial } from '../types';
+import { Product, SupportedLanguage } from '../types';
 import { useState, useEffect } from 'react';
+import {
+  translateProductSync,
+  translateProductFull,
+  translateSingleText,
+  batchTranslate,
+} from './translationEngine';
+import { convertCurrency } from './currencyConverter';
 
 export type { SupportedLanguage };
+export { translateProductSync, translateProductFull, translateSingleText, batchTranslate, convertCurrency };
 
 export interface LanguageOption {
   code: SupportedLanguage;
@@ -18,37 +26,7 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
 ];
 
 /**
- * Conversor dinâmico de moedas para precificação internacional
- */
-export function convertCurrency(amount: number, fromCurrency = 'BRL', toCurrency = 'USD'): number {
-  if (!amount || amount <= 0) return 0;
-  const from = fromCurrency.toUpperCase();
-  const to = toCurrency.toUpperCase();
-  if (from === to) return amount;
-
-  // 1. Normalização para BRL
-  let amountInBrl = amount;
-  if (from === 'USD') amountInBrl = amount * 5.50;
-  else if (from === 'EUR') amountInBrl = amount * 6.00;
-  else if (from === 'GBP') amountInBrl = amount * 7.00;
-  else if (from === 'AOA') amountInBrl = amount * 0.006;
-  else if (from === 'MZN') amountInBrl = amount * 0.086;
-
-  // 2. De BRL para a moeda de destino
-  let converted = amountInBrl;
-  if (to === 'USD') converted = amountInBrl / 5.50;
-  else if (to === 'EUR') converted = amountInBrl / 6.00;
-  else if (to === 'GBP') converted = amountInBrl / 7.00;
-  else if (to === 'BRL') converted = amountInBrl;
-
-  // 3. Arredondamento inteligente de alta conversão (.90 / inteiro)
-  if (converted <= 15) return Math.round(converted * 2) / 2 || 9;
-  if (converted <= 100) return Math.round(converted);
-  return Math.round(converted);
-}
-
-/**
- * Dicionário de interface traduzida para os elementos fixos das páginas de vendas
+ * Dicionário de interface traduzida para os elementos estruturais das páginas de vendas
  */
 export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   pt: {
@@ -77,6 +55,8 @@ export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> 
     footer_platform: 'Plataforma de Pagamentos e Checkout Oficial: Digitall Pay',
     checkout_default_subtext: '🔒 Compra 100% Segura • Acesso Imediato no E-mail',
     installments_prefix: 'ou em até 12x no cartão de crédito',
+    translating_status: 'Traduzindo página...',
+    translated_status: 'Página traduzida',
   },
   en: {
     security_badge: '100% Secure Environment • Encrypted Checkout',
@@ -104,11 +84,13 @@ export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> 
     footer_platform: 'Official Checkout & Payment Gateway: Digitall Pay',
     checkout_default_subtext: '🔒 100% Secure Purchase • Instant Access by Email',
     installments_prefix: 'or flexible installments on credit card / single payment',
+    translating_status: 'Translating page...',
+    translated_status: 'Page translated',
   },
   es: {
     security_badge: 'Ambiente 100% Seguro • Pago Criptografado',
     security_short: 'Seguro',
-    countdown_label: 'ATENCIÓN: CONDICIÓN ESPECIAL CON DESCUENTO FINALIZA EN:',
+    countdown_label: 'ATENCIÓN: CONDICIÓN ESPECIAL CON DESCONTO FINALIZA EN:',
     countdown_luxury: 'Oferta exclusiva de inscripción finaliza en:',
     countdown_urgency: '⚠️ ATENCIÓN: ESTA OFERTA CON DESCUENTO EXPIRA EN:',
     vsl_exclusive: 'VIDEO EXCLUSIVO • MIRA HASTA EL FINAL',
@@ -131,173 +113,17 @@ export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> 
     footer_platform: 'Plataforma Oficial de Pagos y Checkout: Digitall Pay',
     checkout_default_subtext: '🔒 Compra 100% Segura • Acceso Inmediato por E-mail',
     installments_prefix: 'o en cómodas cuotas con tarjeta de crédito / pago único',
+    translating_status: 'Traduciendo página...',
+    translated_status: 'Página traducida',
   },
 };
 
 /**
- * Tradutor contextual de termos comuns em infoprodutos (PT -> EN / ES)
- */
-function translatePhrase(text: string, targetLang: SupportedLanguage): string {
-  if (!text || targetLang === 'pt') return text;
-
-  let result = text;
-
-  if (targetLang === 'en') {
-    const map: [RegExp, string][] = [
-      [/Quero Começar Agora Mesmo/gi, 'Get Instant Access Now'],
-      [/Quero Garantir Minha Vaga Agora/gi, 'Claim My Spot Now'],
-      [/Garantir Minha Vaga/gi, 'Secure My Enrollment'],
-      [/Baixar o Manual Digital Agora/gi, 'Download The Digital Guide Now'],
-      [/Aplicar Para a Mentoria Exclusiva/gi, 'Apply For Exclusive Mentorship'],
-      [/Entrar no Clube VIP Agora/gi, 'Join The VIP Club Now'],
-      [/Reservar Minha Peça Numerada/gi, 'Claim My Limited Edition Piece'],
-      [/Ativar Acesso à Plataforma/gi, 'Activate Platform Access'],
-      [/Iniciar Meu Reset/gi, 'Start My Reset Now'],
-      [/Acessar o Método/gi, 'Access The Method Now'],
-      [/Experimentar o Ritual/gi, 'Experience The Ritual Now'],
-      [/Módulo (\d+)/gi, 'Module $1'],
-      [/Aulas Práticas/gi, 'Practical Lessons'],
-      [/Aulas/gi, 'Lessons'],
-      [/Aula/gi, 'Lesson'],
-      [/Semana (\d+)/gi, 'Week $1'],
-      [/Etapa (\d+)/gi, 'Step $1'],
-      [/Fase (\d+)/gi, 'Phase $1'],
-      [/Capítulo (\d+)/gi, 'Chapter $1'],
-      [/ou 12x de/gi, 'or 12x of'],
-      [/ou em até 12x/gi, 'or flexible payments'],
-      [/no cartão de crédito/gi, 'on card'],
-      [/no cartão/gi, 'on credit card'],
-      [/por mês/gi, 'per month'],
-      [/Acesso Imediato/gi, 'Instant Access'],
-      [/Garantia Incondicional/gi, 'Money-Back Guarantee'],
-      [/Compra 100% Segura/gi, '100% Secure Purchase'],
-      [/Oferta por Tempo Limitado/gi, 'Limited Time Offer'],
-      [/Vagas Limitadas/gi, 'Limited Spots Available'],
-      [/Edição Digital Atualizada/gi, 'Updated Digital Edition'],
-      [/ao vivo/gi, 'live'],
-    ];
-
-    for (const [pattern, replacement] of map) {
-      result = result.replace(pattern, replacement);
-    }
-    return result;
-  }
-
-  if (targetLang === 'es') {
-    const map: [RegExp, string][] = [
-      [/Quero Começar Agora Mesmo/gi, 'Quiero Empezar Ahora Mismo'],
-      [/Quero Garantir Minha Vaga Agora/gi, 'Quiero Reservar Mi Lugar Ahora'],
-      [/Garantir Minha Vaga/gi, 'Asegurar Mi Cupo'],
-      [/Baixar o Manual Digital Agora/gi, 'Descargar La Guía Digital Ahora'],
-      [/Aplicar Para a Mentoria Exclusiva/gi, 'Aplicar a la Mentoría Exclusiva'],
-      [/Entrar no Clube VIP Agora/gi, 'Unirme al Club VIP Ahora'],
-      [/Reservar Minha Peça Numerada/gi, 'Reservar Mi Pieza Numerada'],
-      [/Ativar Acesso à Plataforma/gi, 'Activar Acceso a la Plataforma'],
-      [/Iniciar Meu Reset/gi, 'Iniciar Mi Reset Ahora'],
-      [/Acessar o Método/gi, 'Acceder al Método Ahora'],
-      [/Experimentar o Ritual/gi, 'Probar el Ritual Ahora'],
-      [/Módulo (\d+)/gi, 'Módulo $1'],
-      [/Aulas Práticas/gi, 'Lecciones Prácticas'],
-      [/Aulas/gi, 'Lecciones'],
-      [/Aula/gi, 'Lección'],
-      [/Semana (\d+)/gi, 'Semana $1'],
-      [/Etapa (\d+)/gi, 'Etapa $1'],
-      [/Fase (\d+)/gi, 'Fase $1'],
-      [/Capítulo (\d+)/gi, 'Capítulo $1'],
-      [/ou 12x de/gi, 'o 12x de'],
-      [/ou em até 12x/gi, 'o en hasta 12x'],
-      [/no cartão de crédito/gi, 'con tarjeta de crédito'],
-      [/no cartão/gi, 'con tarjeta'],
-      [/por mês/gi, 'al mes'],
-      [/Acesso Imediato/gi, 'Acceso Inmediato'],
-      [/Garantia Incondicional/gi, 'Garantía Incondicional'],
-      [/Compra 100% Segura/gi, 'Compra 100% Segura'],
-      [/Oferta por Tempo Limitado/gi, 'Oferta por Tiempo Limitado'],
-      [/Vagas Limitadas/gi, 'Cupos Limitados'],
-      [/Edição Digital Atualizada/gi, 'Edición Digital Actualizada'],
-      [/ao vivo/gi, 'en vivo'],
-    ];
-
-    for (const [pattern, replacement] of map) {
-      result = result.replace(pattern, replacement);
-    }
-    return result;
-  }
-
-  return result;
-}
-
-/**
- * Tradutor principal de produtos: transforma dinamicamente o produto para o idioma e moeda selecionados
+ * Tradutor principal de produtos: transforma dinamicamente o produto para o idioma e moeda selecionados.
+ * Fornece compatibilidade síncrona com todas as páginas e templates existentes.
  */
 export function translateProduct(product: Product, targetLang: SupportedLanguage): Product {
-  if (!product) return product;
-  if (targetLang === 'pt') return product;
-
-  const customTrans: ProductTranslation | undefined = product.translations?.[targetLang];
-
-  // 1. Definição da moeda alvo do idioma
-  const targetCurrency = customTrans?.currency || (targetLang === 'en' ? 'USD' : 'EUR');
-
-  // 2. Conversão de Preços
-  const baseCurrency = product.currency || 'BRL';
-  const promoPrice = customTrans?.promo_price !== undefined
-    ? customTrans.promo_price
-    : convertCurrency(product.promo_price, baseCurrency, targetCurrency);
-
-  const originalPrice = customTrans?.original_price !== undefined
-    ? customTrans.original_price
-    : convertCurrency(product.original_price, baseCurrency, targetCurrency);
-
-  // 3. Tradução das Parcelas
-  let installmentsText = customTrans?.installments_text;
-  if (!installmentsText) {
-    if (targetLang === 'en') {
-      const approxInst = (promoPrice / 12).toFixed(2);
-      installmentsText = `or 12x of $ ${approxInst} on card • Single payment available`;
-    } else {
-      const approxInst = (promoPrice / 12).toFixed(2);
-      installmentsText = `o 12x de € ${approxInst} con tarjeta • Pago único disponible`;
-    }
-  }
-
-  // 4. Tradução dos Módulos
-  const translatedModules: ModuleItem[] = (customTrans?.modules || product.modules || []).map((m) => ({
-    ...m,
-    title: translatePhrase(m.title, targetLang),
-    description: translatePhrase(m.description, targetLang),
-    lessonsCount: m.lessonsCount ? translatePhrase(m.lessonsCount, targetLang) : undefined,
-  }));
-
-  // 5. Tradução dos FAQs
-  const translatedFaqs: FaqItem[] = (customTrans?.faqs || product.faqs || []).map((f) => ({
-    ...f,
-    question: translatePhrase(f.question, targetLang),
-    answer: translatePhrase(f.answer, targetLang),
-  }));
-
-  // 6. Tradução dos Recursos / Features
-  const translatedFeatures: string[] = (customTrans?.features || product.features || []).map((feat) =>
-    translatePhrase(feat, targetLang)
-  );
-
-  return {
-    ...product,
-    currency: targetCurrency,
-    promo_price: promoPrice,
-    original_price: originalPrice,
-    installments_text: installmentsText,
-    headline: customTrans?.headline || translatePhrase(product.headline, targetLang),
-    subheadline: customTrans?.subheadline || translatePhrase(product.subheadline, targetLang),
-    badge_text: customTrans?.badge_text || translatePhrase(product.badge_text, targetLang),
-    cta_text: customTrans?.cta_text || translatePhrase(product.cta_text, targetLang),
-    cta_subtext: customTrans?.cta_subtext || translatePhrase(product.cta_subtext, targetLang),
-    cta_url: customTrans?.cta_url || product.cta_url,
-    features: translatedFeatures,
-    modules: translatedModules,
-    faqs: translatedFaqs,
-    testimonials: customTrans?.testimonials || product.testimonials,
-  };
+  return translateProductSync(product, targetLang);
 }
 
 /**

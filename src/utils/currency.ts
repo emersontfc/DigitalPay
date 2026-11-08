@@ -25,7 +25,17 @@ export function getCurrencySymbol(code?: string): string {
 export function formatPrice(amount: number | undefined | null, currencyCode?: string): string {
   const val = Number(amount) || 0;
   const symbol = getCurrencySymbol(currencyCode);
-  const formattedNumber = val.toFixed(2).replace('.', ',');
-  return `${symbol} ${formattedNumber}`;
+  const code = (currencyCode || 'BRL').toUpperCase();
+
+  if (code === 'USD' || code === 'GBP') {
+    return `${symbol} ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  if (code === 'EUR') {
+    return `${symbol} ${val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  return `${symbol} ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+export { convertCurrency } from './currencyConverter';

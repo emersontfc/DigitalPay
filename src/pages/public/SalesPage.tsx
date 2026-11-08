@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { fetchProductBySlug } from '../../lib/supabase';
 import { TemplateRenderer } from '../../components/templates/TemplateRenderer';
 import { FloatingWhatsAppButton } from '../../components/common/FloatingWhatsAppButton';
 import { initFacebookPixel } from '../../utils/pixel';
-import { useSalesPageLanguage, translateProduct } from '../../utils/i18n';
+import { useSalesPageLanguage, translateProductSync, translateProductFull } from '../../utils/i18n';
 import { RefreshCw, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export const SalesPage: React.FC = () => {
@@ -13,11 +13,7 @@ export const SalesPage: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLang] = useSalesPageLanguage();
-
-  const activeProduct = useMemo(() => {
-    if (!product) return null;
-    return translateProduct(product, currentLang);
-  }, [product, currentLang]);
+  const [translatedProduct, setTranslatedProduct] = useState<Product | null>(null);
 
   // Helper para atualizar ou criar meta tag
   const setMetaTag = (property: string, content: string) => {
@@ -64,6 +60,42 @@ export const SalesPage: React.FC = () => {
     load();
   }, [slug]);
 
+  // Efeito reativo para tradução completa do produto
+  useEffect(() => {
+    if (!product) {
+      setTranslatedProduct(null);
+      return;
+    }
+
+    if (currentLang === 'pt') {
+      setTranslatedProduct(product);
+      return;
+    }
+
+    // 1. Aplica tradução síncrona imediata (0ms de latência para moedas e frases em cache)
+    const instantVersion = translateProductSync(product, currentLang);
+    setTranslatedProduct(instantVersion);
+
+    // 2. Dispara tradução assíncrona profunda de 100% dos textos
+    let isCancelled = false;
+
+    translateProductFull(product, currentLang)
+      .then((full) => {
+        if (!isCancelled && full) {
+          setTranslatedProduct(full);
+        }
+      })
+      .catch((err) => {
+        console.warn('Erro ao completar tradução dinâmica:', err);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [product, currentLang]);
+
+  const activeProduct = translatedProduct || (product ? translateProductSync(product, currentLang) : null);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300 p-4">
@@ -109,5 +141,3 @@ export const SalesPage: React.FC = () => {
     </div>
   );
 };
-
-

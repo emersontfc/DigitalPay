@@ -114,21 +114,21 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
   };
 
   const sizeClasses = {
-    normal: 'py-3 px-6 text-base',
-    lg: 'py-4 px-8 text-lg',
-    xl: 'py-5 px-8 text-lg sm:text-xl md:text-2xl',
+    normal: 'py-2.5 sm:py-3 px-3.5 sm:px-6 text-sm sm:text-base',
+    lg: 'py-3.5 sm:py-4 px-4 sm:px-8 text-sm sm:text-lg',
+    xl: 'py-3.5 sm:py-5 px-4 sm:px-8 text-sm sm:text-lg md:text-xl',
   }[size];
 
   return (
     <div className={`flex flex-col items-center gap-2.5 ${fullWidth ? 'w-full' : 'inline-flex'} ${className}`}>
       <button
         onClick={handleClick}
-        className={`group relative flex items-center justify-center gap-3 rounded-2xl transition-all duration-300 transform active:scale-95 cursor-pointer uppercase tracking-wider text-center ${sizeClasses} ${variantStyles.btn} ${fullWidth ? 'w-full' : ''}`}
+        className={`group relative flex items-center justify-center gap-2 sm:gap-3 rounded-2xl transition-all duration-300 transform active:scale-95 cursor-pointer uppercase tracking-wider text-center ${sizeClasses} ${variantStyles.btn} ${fullWidth ? 'w-full' : ''}`}
       >
         <span className="shrink-0">{variantStyles.icon}</span>
-        <span className="font-extrabold drop-shadow-sm">{ctaText}</span>
+        <span className="font-extrabold drop-shadow-sm leading-tight text-center">{ctaText}</span>
         <span className="shrink-0 group-hover:translate-x-1.5 transition-transform duration-200">
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </span>
       </button>
 
