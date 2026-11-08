@@ -7,6 +7,10 @@
 set -e
 
 echo "🚀 Atualizando Digitall Pay com a versão mais recente do GitHub..."
+
+# Ajusta permissões para o usuário atual caso algum arquivo tenha ficado com dono root
+sudo chown -R $USER:$USER /var/www/digitalpay
+
 cd /var/www/digitalpay
 
 # Sincroniza com a branch main
@@ -24,7 +28,6 @@ sudo systemctl reload nginx
 
 echo ""
 echo "=========================================================="
-echo "🎉 Digitall Pay e AI Builder atualizados com sucesso!"
+echo "🎉 Digitall Pay atualizado com sucesso no servidor!"
 echo "Acesse: https://digitallpay.store/admin"
 echo "=========================================================="
-
