@@ -6,6 +6,7 @@ import { ModelManagerModal } from './ModelManagerModal';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import { ImageUploadInput } from '../common/ImageUploadInput';
 import { VideoPlayer, resolveVideoSource } from '../common/VideoPlayer';
+import { useSalesPageLanguage, translateProduct } from '../../utils/i18n';
 import {
   X,
   Save,
@@ -29,7 +30,8 @@ import {
   Clock,
   Volume2,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  Globe
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -75,6 +77,8 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [facebookPixelId, setFacebookPixelId] = useState(product?.facebook_pixel_id || '');
   const [whatsappNumber, setWhatsappNumber] = useState(product?.whatsapp_number || '');
   const [whatsappMessage, setWhatsappMessage] = useState(product?.whatsapp_message || '');
+  const [multilangEnabled, setMultilangEnabled] = useState<boolean>(product?.multilang_enabled !== false);
+  const [previewLang] = useSalesPageLanguage();
 
   const [guaranteeDays, setGuaranteeDays] = useState<number>(product?.guarantee_days || 7);
   const [countdownEnabled, setCountdownEnabled] = useState<boolean>(product?.countdown_enabled !== undefined ? product.countdown_enabled : true);
@@ -212,6 +216,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     facebook_pixel_id: facebookPixelId,
     whatsapp_number: whatsappNumber,
     whatsapp_message: whatsappMessage,
+    multilang_enabled: multilangEnabled,
     guarantee_days: Number(guaranteeDays),
     countdown_enabled: countdownEnabled,
     countdown_minutes: Number(countdownMinutes),
@@ -296,6 +301,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         facebook_pixel_id: facebookPixelId.trim() || undefined,
         whatsapp_number: whatsappNumber.trim() || undefined,
         whatsapp_message: whatsappMessage.trim() || undefined,
+        multilang_enabled: multilangEnabled,
         guarantee_days: Number(guaranteeDays) || 7,
         countdown_enabled: countdownEnabled,
         countdown_minutes: Number(countdownMinutes) || 15,
@@ -461,7 +467,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                 <span>URL pública: /p/{slug || 'produto'}</span>
               </div>
               <div className="max-h-[70vh] overflow-y-auto">
-                <TemplateRenderer product={currentPreviewProduct} />
+                <TemplateRenderer product={translateProduct(currentPreviewProduct, previewLang)} />
               </div>
             </div>
           ) : (
@@ -1009,6 +1015,41 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                           className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO MULTI-IDIOMA & MULTI-MOEDA INTERNACIONAL */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-emerald-400" />
+                        <h4 className="font-bold text-white text-sm">
+                          Tradução Internacional & Multi-Moeda (PT, EN, ES)
+                        </h4>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={multilangEnabled}
+                          onChange={(e) => setMultilangEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Quando ativado, exibe o seletor de idiomas (<span className="text-white font-semibold">🇧🇷 PT • 🇺🇸 EN • 🇪🇸 ES</span>) no topo da sua página. Ao mudar a língua, a moeda e os preços se convertem automaticamente (ex: <span className="text-emerald-400 font-mono">R$ 197</span> ➔ <span className="text-emerald-400 font-mono">$ 36</span> ➔ <span className="text-emerald-400 font-mono">€ 33</span>) com tradução contextual de toda a copy.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-slate-400">
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
+                        <span>🇧🇷</span> Português ➔ Real (BRL • R$)
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
+                        <span>🇺🇸</span> English ➔ Dólar (USD • $)
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
+                        <span>🇪🇸</span> Español ➔ Euro (EUR • €)
+                      </span>
                     </div>
                   </div>
                 </div>

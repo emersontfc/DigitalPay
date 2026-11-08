@@ -227,6 +227,8 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     whatsapp_number: product.whatsapp_number ? product.whatsapp_number.trim() : undefined,
     whatsapp_message: product.whatsapp_message ? product.whatsapp_message.trim() : undefined,
     facebook_pixel_id: product.facebook_pixel_id ? product.facebook_pixel_id.trim() : undefined,
+    multilang_enabled: product.multilang_enabled !== undefined ? product.multilang_enabled : true,
+    translations: product.translations || {},
     created_at: product.created_at || now,
     updated_at: now,
   };
@@ -257,6 +259,8 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
         };
         delete (compatiblePayload as any).vsl_pitch_delay_seconds;
         delete (compatiblePayload as any).vsl_autoplay;
+        delete (compatiblePayload as any).translations;
+        delete (compatiblePayload as any).multilang_enabled;
 
         const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
         if (retryResult.error) {

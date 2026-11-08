@@ -7,6 +7,7 @@ import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
+import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
 import {
   Flame,
   CheckCircle2,
@@ -42,10 +43,13 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
     ? Math.round((discountAmount / product.original_price) * 100)
     : 0;
 
+  const [currentLang] = useSalesPageLanguage();
+  const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+
   return (
     <div className="min-h-screen bg-[#080808] text-neutral-100 selection:bg-amber-400 selection:text-neutral-950 font-sans">
       {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
-      <SalesPageTopBar variant="gold" />
+      <SalesPageTopBar variant="gold" showLanguageSelector={product.multilang_enabled !== false} />
 
       {/* 2. Barra de Escassez Ouro e Preto */}
       {product.countdown_enabled && (
@@ -53,7 +57,7 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="gold"
-            label="⚠️ ATENÇÃO: ESSA OFERTA COM DESCONTO EXPIRA EM:"
+            label={t.countdown_urgency}
           />
         </div>
       )}

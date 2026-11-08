@@ -8,6 +8,7 @@ import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { FloatingWhatsAppButton } from '../common/FloatingWhatsAppButton';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
+import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
 import {
   CheckCircle2,
   Shield,
@@ -308,10 +309,13 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
     ? Math.round((discountAmount / product.original_price) * 100)
     : 0;
 
+  const [currentLang] = useSalesPageLanguage();
+  const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+
   return (
     <div className={`min-h-screen ${theme.bg} text-slate-100 ${theme.selection} font-sans`}>
       {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
-      <SalesPageTopBar variant={theme.topBarVariant} />
+      <SalesPageTopBar variant={theme.topBarVariant} showLanguageSelector={product.multilang_enabled !== false} />
 
       {/* 2. Barra de Contagem Regressiva Topo */}
       {product.countdown_enabled && (
@@ -319,7 +323,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant={theme.timerVariant}
-            label="ATENÇÃO: OFERTA EXCLUSIVA COM CONDIÇÃO ESPECIAL ENCERRA EM:"
+            label={t.countdown_label}
           />
         </div>
       )}
@@ -379,7 +383,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           ) : isDelayActive ? (
             <div className="max-w-md mx-auto p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex items-center justify-center gap-2">
               <Clock className="w-4 h-4 animate-spin text-slate-400" />
-              <span>Aguarde o vídeo para liberar a condição especial abaixo...</span>
+              <span>{t.vsl_delay_waiting}</span>
             </div>
           ) : null}
         </div>
@@ -391,10 +395,10 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className={`text-xs font-black uppercase tracking-widest ${theme.accentText} block mb-2`}>
-                Por que escolher nossa marca
+                {t.features_badge}
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-white">
-                Tudo o que você precisa para alcançar o resultado desejado
+                {t.features_title}
               </h2>
             </div>
 
@@ -425,10 +429,10 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <div className="text-center max-w-2xl mx-auto mb-12">
             <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.accentBg} ${theme.accentText} text-xs font-bold uppercase tracking-wider mb-3`}>
               <Layers className="w-3.5 h-3.5" />
-              <span>Estrutura do Conteúdo</span>
+              <span>{t.modules_badge}</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              O que você vai encontrar por dentro
+              {t.modules_title}
             </h2>
           </div>
 
@@ -480,10 +484,10 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className={`text-xs font-black uppercase tracking-widest ${theme.accentText} block mb-2`}>
-                Depoimentos Reais
+                {t.testimonials_badge}
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-white">
-                Quem já aplicou recomenda os resultados
+                {t.testimonials_title}
               </h2>
             </div>
 
@@ -529,21 +533,21 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
             {discountPercent > 0 && (
               <div className="inline-block">
                 <span className={`px-4 py-1.5 rounded-full ${theme.badgeBg} border ${theme.badgeBorder} ${theme.accentText} text-xs font-black uppercase tracking-wider`}>
-                  ECONOMIZE {discountPercent}% HOJE
+                  {t.pricing_save.replace('{percent}', String(discountPercent))}
                 </span>
               </div>
             )}
 
             <div>
               <h3 className="text-2xl font-black text-white">{product.name}</h3>
-              <p className="text-xs text-slate-400 mt-1">Acesso completo e imediato ao conteúdo</p>
+              <p className="text-xs text-slate-400 mt-1">{t.pricing_subtext}</p>
             </div>
 
             {/* Bloco de Preço */}
             <div className="p-5 rounded-2xl bg-black/60 border border-slate-800/80 space-y-1">
               {product.original_price > product.promo_price && (
                 <div className="text-xs sm:text-sm text-slate-500 line-through">
-                  De {formatPrice(product.original_price, product.currency)} por apenas:
+                  {t.pricing_was.replace('{original}', formatPrice(product.original_price, product.currency))}
                 </div>
               )}
               <div className={`text-4xl sm:text-5xl font-black ${theme.priceColor}`}>
@@ -575,12 +579,14 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <div className={`p-6 sm:p-8 rounded-2xl ${theme.cardBg} border ${theme.cardBorder} flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left`}>
             <div className={`w-20 h-20 rounded-2xl ${theme.guaranteeBadge} flex flex-col items-center justify-center shrink-0 border-2`}>
               <Shield className="w-8 h-8 mb-1" />
-              <span className="text-xs font-black">{product.guarantee_days} DIAS</span>
+              <span className="text-xs font-black">{product.guarantee_days} {currentLang === 'en' ? 'DAYS' : currentLang === 'es' ? 'DÍAS' : 'DIAS'}</span>
             </div>
             <div className="space-y-1.5">
-              <h4 className="text-lg font-bold text-white">Garantia Incondicional de {product.guarantee_days} Dias</h4>
+              <h4 className="text-lg font-bold text-white">
+                {t.guarantee_title.replace('{days}', String(product.guarantee_days))}
+              </h4>
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                Você tem {product.guarantee_days} dias para testar todo o conteúdo. Se por qualquer motivo você não ficar 100% satisfeito, basta enviar um e-mail para receber todo o seu investimento de volta, sem burocracias.
+                {t.guarantee_desc.replace('{days}', String(product.guarantee_days))}
               </p>
             </div>
           </div>
@@ -593,9 +599,9 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           <div className="text-center max-w-xl mx-auto mb-10">
             <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.accentBg} ${theme.accentText} text-xs font-bold uppercase tracking-wider mb-2`}>
               <HelpCircle className="w-3.5 h-3.5" />
-              <span>Dúvidas Frequentes</span>
+              <span>{t.faq_badge}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">Perguntas e Respostas</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">{t.faq_title}</h2>
           </div>
 
           <div className="space-y-3">
@@ -631,9 +637,9 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
 
       {/* 10. Rodapé Institucional */}
       <footer className="py-10 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
-        <p>© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} {product.name}. {t.footer_rights}</p>
         <p className="text-[11px] text-slate-600">
-          Plataforma de Pagamentos e Checkout Oficial: <span className="text-slate-400 font-bold">Digitall Pay</span>
+          {t.footer_platform}
         </p>
       </footer>
 

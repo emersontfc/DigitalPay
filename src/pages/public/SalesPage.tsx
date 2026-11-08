@@ -1,16 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Product } from '../../types';
 import { fetchProductBySlug } from '../../lib/supabase';
 import { TemplateRenderer } from '../../components/templates/TemplateRenderer';
 import { FloatingWhatsAppButton } from '../../components/common/FloatingWhatsAppButton';
 import { initFacebookPixel } from '../../utils/pixel';
+import { useSalesPageLanguage, translateProduct } from '../../utils/i18n';
 import { RefreshCw, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export const SalesPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentLang] = useSalesPageLanguage();
+
+  const activeProduct = useMemo(() => {
+    if (!product) return null;
+    return translateProduct(product, currentLang);
+  }, [product, currentLang]);
 
   // Helper para atualizar ou criar meta tag
   const setMetaTag = (property: string, content: string) => {
@@ -67,16 +74,18 @@ export const SalesPage: React.FC = () => {
   }
 
   // Renderizar página clássica
-  if (product) {
+  if (activeProduct) {
     return (
       <>
-        <TemplateRenderer product={product} />
+        <TemplateRenderer product={activeProduct} />
         {/* Botão de Suporte WhatsApp Flutuante */}
-        <FloatingWhatsAppButton
-          whatsappNumber={product.whatsapp_number}
-          whatsappMessage={product.whatsapp_message}
-          productName={product.name}
-        />
+        {activeProduct.whatsapp_number && (
+          <FloatingWhatsAppButton
+            whatsappNumber={activeProduct.whatsapp_number}
+            whatsappMessage={activeProduct.whatsapp_message}
+            productName={activeProduct.name}
+          />
+        )}
       </>
     );
   }

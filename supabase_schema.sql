@@ -60,6 +60,10 @@ CREATE TABLE IF NOT EXISTS public.products (
     whatsapp_message TEXT,
     facebook_pixel_id TEXT,
     
+    -- Multi-idioma & Multi-moeda
+    multilang_enabled BOOLEAN DEFAULT true,
+    translations JSONB DEFAULT '{}'::jsonb,
+    
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -67,6 +71,8 @@ CREATE TABLE IF NOT EXISTS public.products (
 
 -- Garantir flexibilidade para todos os novos templates de marca
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS multilang_enabled BOOLEAN DEFAULT true;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
 
 -- 2. Índice rápido para busca por Slug (URLs amigáveis /p/:slug)
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products(slug);
@@ -233,6 +239,8 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 
 -- Garantir flexibilidade para todos os novos templates de marca
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS multilang_enabled BOOLEAN DEFAULT true;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
 
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 

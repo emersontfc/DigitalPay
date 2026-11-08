@@ -7,6 +7,7 @@ import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
+import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
 import {
   Award,
   CheckCircle,
@@ -36,10 +37,13 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
     setOpenFaq(openFaq === id ? null : id);
   };
 
+  const [currentLang] = useSalesPageLanguage();
+  const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 selection:bg-indigo-600 selection:text-white">
       {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
-      <SalesPageTopBar variant="luxury" />
+      <SalesPageTopBar variant="luxury" showLanguageSelector={product.multilang_enabled !== false} />
 
       {/* 2. Timer discreto e executivo */}
       {product.countdown_enabled && (
@@ -47,7 +51,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="luxury"
-            label="Condição exclusiva para novas inscrições expira em:"
+            label={t.countdown_luxury}
           />
         </div>
       )}

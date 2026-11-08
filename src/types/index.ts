@@ -76,8 +76,35 @@ export interface Product {
   whatsapp_message?: string;
   facebook_pixel_id?: string;
   
+  // Multi-idioma & Multi-moeda
+  multilang_enabled?: boolean; // Se o seletor de idiomas está ativo na página
+  translations?: {
+    en?: ProductTranslation;
+    es?: ProductTranslation;
+  };
+  
   created_at: string;
   updated_at: string;
+}
+
+export type SupportedLanguage = 'pt' | 'en' | 'es';
+
+export interface ProductTranslation {
+  name?: string;
+  headline?: string;
+  subheadline?: string;
+  badge_text?: string;
+  cta_text?: string;
+  cta_subtext?: string;
+  cta_url?: string;
+  installments_text?: string;
+  promo_price?: number;
+  original_price?: number;
+  currency?: string;
+  features?: string[];
+  modules?: ModuleItem[];
+  testimonials?: Testimonial[];
+  faqs?: FaqItem[];
 }
 
 export interface PageModel {
