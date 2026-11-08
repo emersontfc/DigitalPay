@@ -27,7 +27,7 @@ interface TemplateProps {
 export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
   const [openFaq, setOpenFaq] = useState<string | null>(product.faqs[0]?.id || null);
 
-  const { showOffer } = useVslPitchDelay({
+  const { showOffer, revealNow, isDelayActive } = useVslPitchDelay({
     delaySeconds: product.vsl_pitch_delay_seconds,
     productId: product.id,
     enabled: product.hero_type === 'vsl',
@@ -246,6 +246,21 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
       </section>
 
       {/* 7. Proposta de Valor / Checkout */}
+      {!showOffer && isDelayActive && (
+        <section className="py-12 px-4 text-center max-w-lg mx-auto">
+          <div className="p-5 rounded-2xl bg-slate-900 border border-indigo-500/30 text-indigo-300 text-xs sm:text-sm font-semibold flex flex-col items-center gap-3 shadow-lg">
+            <span>⏳ Assista à apresentação acima para desbloquear a oferta especial abaixo...</span>
+            <button
+              type="button"
+              onClick={revealNow}
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all cursor-pointer shadow-md"
+            >
+              🔓 Ver a Oferta e Preço Agora
+            </button>
+          </div>
+        </section>
+      )}
+
       {showOffer && (
         <section className="py-20 px-4 animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
           <div className="max-w-lg mx-auto p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-indigo-500/30 shadow-2xl text-center">

@@ -160,9 +160,16 @@ export async function fetchProducts(): Promise<Product[]> {
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const local = getLocalProducts().find(p => p.slug === slug);
+  const normalize = (p: Product): Product => ({
+    ...p,
+    promo_price: Number(p.promo_price) || 97,
+    original_price: Number(p.original_price) || 197,
+    currency: p.currency || 'BRL',
+  });
+
   const client = getSupabaseClient();
   if (!client) {
-    return local || null;
+    return local ? normalize(local) : null;
   }
 
   try {
@@ -173,12 +180,12 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
       .maybeSingle();
 
     if (error || !data) {
-      return local || null;
+      return local ? normalize(local) : null;
     }
 
-    return data as Product;
+    return normalize(data as Product);
   } catch {
-    return local || null;
+    return local ? normalize(local) : null;
   }
 }
 

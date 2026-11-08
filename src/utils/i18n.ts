@@ -191,6 +191,10 @@ export function setSalesPageLanguage(lang: SupportedLanguage): void {
   if (typeof window === 'undefined') return;
   try {
     sessionStorage.setItem('digitallpay_sales_lang', lang);
+    const url = new URL(window.location.href);
+    const param = lang === 'pt-mz' ? 'mz' : lang === 'pt-ao' ? 'ao' : lang;
+    url.searchParams.set('lang', param);
+    window.history.replaceState({}, '', url.toString());
     window.dispatchEvent(new CustomEvent('digitallpay_lang_change', { detail: lang }));
   } catch {
     // noop

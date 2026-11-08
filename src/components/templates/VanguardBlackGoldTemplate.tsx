@@ -28,7 +28,7 @@ interface TemplateProps {
 export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) => {
   const [openFaq, setOpenFaq] = useState<string | null>(product.faqs[0]?.id || null);
 
-  const { showOffer } = useVslPitchDelay({
+  const { showOffer, revealNow, isDelayActive } = useVslPitchDelay({
     delaySeconds: product.vsl_pitch_delay_seconds,
     productId: product.id,
     enabled: product.hero_type === 'vsl',
@@ -258,6 +258,21 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
       </section>
 
       {/* 7. Caixa da Oferta Final */}
+      {!showOffer && isDelayActive && (
+        <section className="py-12 px-4 text-center max-w-lg mx-auto">
+          <div className="p-5 rounded-2xl bg-neutral-950 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-semibold flex flex-col items-center gap-3 shadow-lg">
+            <span>⏳ Assista à apresentação acima para desbloquear a oferta especial abaixo...</span>
+            <button
+              type="button"
+              onClick={revealNow}
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs transition-all cursor-pointer shadow-md"
+            >
+              🔓 Ver a Oferta e Preço Agora
+            </button>
+          </div>
+        </section>
+      )}
+
       {showOffer && (
         <section className="py-20 px-4 animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
           <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-neutral-950 border-2 border-amber-500/60 shadow-[0_0_50px_rgba(245,158,11,0.25)] text-center relative">

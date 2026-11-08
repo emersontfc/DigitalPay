@@ -15,7 +15,7 @@ export const FACTORY_PAGE_MODELS: PageModel[] = [
       badge_text: 'OFERTA POR TEMPO LIMITADO',
       hero_type: 'vsl',
       hero_media_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      vsl_pitch_delay_seconds: 120,
+      vsl_pitch_delay_seconds: 0,
       vsl_autoplay: false,
       currency: 'BRL',
       original_price: 497,

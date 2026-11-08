@@ -294,6 +294,21 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
       </section>
 
       {/* 7. Caixa da Oferta Irrecusável (Pricing Card) */}
+      {!showOffer && isDelayActive && (
+        <section className="py-12 px-4 text-center max-w-lg mx-auto">
+          <div className="p-5 rounded-2xl bg-slate-950 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold flex flex-col items-center gap-3 shadow-lg">
+            <span>⏳ Assista ao vídeo acima para liberar a condição especial abaixo...</span>
+            <button
+              type="button"
+              onClick={revealNow}
+              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md"
+            >
+              🔓 Liberar Oferta e Preço Agora
+            </button>
+          </div>
+        </section>
+      )}
+
       {showOffer && (
         <section className="py-20 px-4 relative animate-in fade-in slide-in-from-bottom-8 duration-700" id="checkout-section">
           <div className="max-w-xl mx-auto p-8 sm:p-10 rounded-3xl bg-slate-950 border-2 border-emerald-500/50 shadow-[0_0_60px_rgba(16,185,129,0.25)] relative text-center">

@@ -256,13 +256,21 @@ export function translateProductSync(product: Product, targetLang: SupportedLang
   if (!product) return product;
 
   // 1. Definição da Moeda de Destino
-  let targetCurrency = 'BRL';
+  const baseCurrency = (product.currency || 'BRL').toUpperCase();
+  let targetCurrency = baseCurrency;
   if (targetLang === 'pt-mz') targetCurrency = 'MZN';
   else if (targetLang === 'pt-ao') targetCurrency = 'AOA';
   else if (targetLang === 'en') targetCurrency = 'USD';
   else if (targetLang === 'es') targetCurrency = 'EUR';
+  else if (targetLang === 'pt') targetCurrency = 'BRL';
 
-  // 2. Verifica se há tradução personalizada pré-definida
+  // 2. Garante valores numéricos válidos para os preços
+  const rawPromo = Number(product.promo_price);
+  const rawOriginal = Number(product.original_price);
+  const safePromo = !isNaN(rawPromo) && rawPromo > 0 ? rawPromo : 97;
+  const safeOriginal = !isNaN(rawOriginal) && rawOriginal > 0 ? rawOriginal : safePromo * 2;
+
+  // 3. Verifica se há tradução personalizada pré-definida
   const precompiled = PRECOMPILED_MODEL_TRANSLATIONS[product.id] ||
     (product.slug ? PRECOMPILED_MODEL_TRANSLATIONS[product.slug] : undefined);
 
@@ -271,15 +279,14 @@ export function translateProductSync(product: Product, targetLang: SupportedLang
     targetCurrency = customTrans.currency;
   }
 
-  // 3. Conversão de Preços
-  const baseCurrency = product.currency || 'BRL';
+  // 4. Conversão de Preços
   const promoPrice = customTrans?.promo_price !== undefined
     ? customTrans.promo_price
-    : convertCurrency(product.promo_price, baseCurrency, targetCurrency);
+    : convertCurrency(safePromo, baseCurrency, targetCurrency);
 
   const originalPrice = customTrans?.original_price !== undefined
     ? customTrans.original_price
-    : convertCurrency(product.original_price, baseCurrency, targetCurrency);
+    : convertCurrency(safeOriginal, baseCurrency, targetCurrency);
 
   // 4. Texto de Parcelamento / Pagamento Contextual
   let installmentsText = customTrans?.installments_text;
@@ -431,9 +438,20 @@ export async function translateProductFull(product: Product, targetLang: Support
   };
 
   // 6. Moeda e Preços
-  const targetCurrency = targetLang === 'en' ? 'USD' : 'EUR';
-  const promoPrice = convertCurrency(product.promo_price, product.currency || 'BRL', targetCurrency);
-  const originalPrice = convertCurrency(product.original_price, product.currency || 'BRL', targetCurrency);
+  const baseCurrency = (product.currency || 'BRL').toUpperCase();
+  let targetCurrency = 'USD';
+  if (targetLang === 'es') targetCurrency = 'EUR';
+  else if (targetLang === 'pt-mz') targetCurrency = 'MZN';
+  else if (targetLang === 'pt-ao') targetCurrency = 'AOA';
+  else if (targetLang === 'pt') targetCurrency = 'BRL';
+
+  const rawPromo = Number(product.promo_price);
+  const rawOriginal = Number(product.original_price);
+  const safePromo = !isNaN(rawPromo) && rawPromo > 0 ? rawPromo : 97;
+  const safeOriginal = !isNaN(rawOriginal) && rawOriginal > 0 ? rawOriginal : safePromo * 2;
+
+  const promoPrice = convertCurrency(safePromo, baseCurrency, targetCurrency);
+  const originalPrice = convertCurrency(safeOriginal, baseCurrency, targetCurrency);
 
   let installmentsText = '';
   if (targetLang === 'en') {

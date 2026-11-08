@@ -8,21 +8,22 @@ set -e
 
 echo "🚀 Atualizando Digitall Pay com a versão mais recente do GitHub..."
 
-# Ajusta permissões para o usuário atual caso algum arquivo tenha ficado com dono root
+# 1. Ajusta permissões para o usuário atual e configura diretório seguro
 sudo chown -R $USER:$USER /var/www/digitalpay
+git config --global --add safe.directory /var/www/digitalpay || true
 
 cd /var/www/digitalpay
 
-# Sincroniza com a branch main
+# 2. Sincroniza com a branch main do GitHub
 git fetch origin main
 git reset --hard origin/main
 
-# Instala novas dependências e gera o build do React
+# 3. Instala novas dependências e compila o React
 echo "📦 Instalando dependências e compilando..."
 npm install
 npm run build
 
-# Recarrega o Nginx
+# 4. Recarrega o servidor Nginx
 echo "🔄 Recarregando Nginx..."
 sudo systemctl reload nginx
 

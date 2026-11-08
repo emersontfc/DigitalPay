@@ -67,16 +67,16 @@ export const SalesPage: React.FC = () => {
       return;
     }
 
-    if (currentLang === 'pt') {
-      setTranslatedProduct(product);
-      return;
-    }
-
-    // 1. Aplica tradução síncrona imediata (0ms de latência para moedas e frases em cache)
+    // 1. Aplica imediatamente a versão síncrona com moedas e preços convertidos
     const instantVersion = translateProductSync(product, currentLang);
     setTranslatedProduct(instantVersion);
 
-    // 2. Dispara tradução assíncrona profunda de 100% dos textos
+    // Se for variante do Português (Brasil, Moçambique ou Angola), a moeda já está 100% pronta
+    if (currentLang === 'pt' || currentLang === 'pt-mz' || currentLang === 'pt-ao') {
+      return;
+    }
+
+    // 2. Dispara tradução assíncrona profunda de 100% dos textos para EN e ES
     let isCancelled = false;
 
     translateProductFull(product, currentLang)
