@@ -5,11 +5,12 @@ import {
   translateProductFull,
   translateSingleText,
   batchTranslate,
+  isPortugueseLanguage,
 } from './translationEngine';
 import { convertCurrency } from './currencyConverter';
 
 export type { SupportedLanguage };
-export { translateProductSync, translateProductFull, translateSingleText, batchTranslate, convertCurrency };
+export { translateProductSync, translateProductFull, translateSingleText, batchTranslate, convertCurrency, isPortugueseLanguage };
 
 export interface LanguageOption {
   code: SupportedLanguage;
@@ -20,43 +21,59 @@ export interface LanguageOption {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { code: 'pt', label: 'Português', flag: '🇧🇷', currency: 'BRL', currencySymbol: 'R$' },
-  { code: 'en', label: 'English', flag: '🇺🇸', currency: 'USD', currencySymbol: '$' },
-  { code: 'es', label: 'Español', flag: '🇪🇸', currency: 'EUR', currencySymbol: '€' },
+  { code: 'pt', label: 'Português (Brasil)', flag: '🇧🇷', currency: 'BRL', currencySymbol: 'R$' },
+  { code: 'pt-mz', label: 'Moçambique (Metical)', flag: '🇲🇿', currency: 'MZN', currencySymbol: 'MT' },
+  { code: 'pt-ao', label: 'Angola (Kwanza)', flag: '🇦🇴', currency: 'AOA', currencySymbol: 'Kz' },
+  { code: 'en', label: 'English (US Dollar)', flag: '🇺🇸', currency: 'USD', currencySymbol: '$' },
+  { code: 'es', label: 'Español (Euro)', flag: '🇪🇸', currency: 'EUR', currencySymbol: '€' },
 ];
+
+const BASE_PT_UI = {
+  security_badge: 'Ambiente Seguro • Checkout Criptografado',
+  security_short: 'Seguro',
+  countdown_label: 'ATENÇÃO: CONDIÇÃO ESPECIAL COM DESCONTO ENCERRA EM:',
+  countdown_luxury: 'Condição exclusiva para novas inscrições expira em:',
+  countdown_urgency: '⚠️ ATENÇÃO: ESSA OFERTA COM DESCONTO EXPIRA EM:',
+  vsl_exclusive: 'VÍDEO EXCLUSIVO • ASSISTA ATÉ O FINAL',
+  vsl_unmute: 'Ligue o seu áudio',
+  vsl_delay_waiting: 'Aguarde o vídeo para liberar a condição especial abaixo...',
+  features_badge: 'Por que escolher nossa marca',
+  features_title: 'Tudo o que você precisa para alcançar o resultado desejado',
+  modules_badge: 'Estrutura do Conteúdo',
+  modules_title: 'O que você vai encontrar por dentro',
+  testimonials_badge: 'Depoimentos Reais',
+  testimonials_title: 'Quem já aplicou recomenda os resultados',
+  guarantee_title: 'Garantia Incondicional de {days} Dias',
+  guarantee_desc: 'Você tem {days} dias para testar todo o conteúdo. Se por qualquer motivo você não ficar 100% satisfeito, basta enviar um e-mail para receber todo o seu investimento de volta, sem burocracias.',
+  faq_badge: 'Dúvidas Frequentes',
+  faq_title: 'Perguntas e Respostas',
+  pricing_save: 'ECONOMIZE {percent}% HOJE',
+  pricing_was: 'De {original} por apenas:',
+  pricing_subtext: 'Acesso completo e imediato ao conteúdo',
+  footer_rights: 'Todos os direitos reservados.',
+  footer_platform: 'Plataforma de Pagamentos e Checkout Oficial: Digitall Pay',
+  checkout_default_subtext: '🔒 Compra 100% Segura • Acesso Imediato no E-mail',
+  installments_prefix: 'ou em até 12x no cartão de crédito',
+  translating_status: 'Traduzindo página...',
+  translated_status: 'Página traduzida',
+};
 
 /**
  * Dicionário de interface traduzida para os elementos estruturais das páginas de vendas
  */
 export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   pt: {
-    security_badge: 'Ambiente Seguro • Checkout Criptografado',
-    security_short: 'Seguro',
-    countdown_label: 'ATENÇÃO: CONDIÇÃO ESPECIAL COM DESCONTO ENCERRA EM:',
-    countdown_luxury: 'Condição exclusiva para novas inscrições expira em:',
-    countdown_urgency: '⚠️ ATENÇÃO: ESSA OFERTA COM DESCONTO EXPIRA EM:',
-    vsl_exclusive: 'VÍDEO EXCLUSIVO • ASSISTA ATÉ O FINAL',
-    vsl_unmute: 'Ligue o seu áudio',
-    vsl_delay_waiting: 'Aguarde o vídeo para liberar a condição especial abaixo...',
-    features_badge: 'Por que escolher nossa marca',
-    features_title: 'Tudo o que você precisa para alcançar o resultado desejado',
-    modules_badge: 'Estrutura do Conteúdo',
-    modules_title: 'O que você vai encontrar por dentro',
-    testimonials_badge: 'Depoimentos Reais',
-    testimonials_title: 'Quem já aplicou recomenda os resultados',
-    guarantee_title: 'Garantia Incondicional de {days} Dias',
-    guarantee_desc: 'Você tem {days} dias para testar todo o conteúdo. Se por qualquer motivo você não ficar 100% satisfeito, basta enviar um e-mail para receber todo o seu investimento de volta, sem burocracias.',
-    faq_badge: 'Dúvidas Frequentes',
-    faq_title: 'Perguntas e Respostas',
-    pricing_save: 'ECONOMIZE {percent}% HOJE',
-    pricing_was: 'De {original} por apenas:',
-    pricing_subtext: 'Acesso completo e imediato ao conteúdo',
-    footer_rights: 'Todos os direitos reservados.',
-    footer_platform: 'Plataforma de Pagamentos e Checkout Oficial: Digitall Pay',
-    checkout_default_subtext: '🔒 Compra 100% Segura • Acesso Imediato no E-mail',
-    installments_prefix: 'ou em até 12x no cartão de crédito',
-    translating_status: 'Traduzindo página...',
-    translated_status: 'Página traduzida',
+    ...BASE_PT_UI,
+  },
+  'pt-mz': {
+    ...BASE_PT_UI,
+    checkout_default_subtext: '🔒 Compra 100% Segura • Aceita M-Pesa, E-Mola e Cartão',
+    installments_prefix: 'ou à vista via M-Pesa, E-Mola ou Cartão',
+  },
+  'pt-ao': {
+    ...BASE_PT_UI,
+    checkout_default_subtext: '🔒 Compra 100% Segura • Aceita Multicaixa Express e Cartão',
+    installments_prefix: 'ou à vista via Multicaixa Express ou Cartão',
   },
   en: {
     security_badge: '100% Secure Environment • Encrypted Checkout',
@@ -109,7 +126,7 @@ export const UI_TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> 
     pricing_save: 'AHORRA {percent}% HOY',
     pricing_was: 'Precio regular {original} • Por solo:',
     pricing_subtext: 'Acceso inmediato y completo al contenido',
-    footer_rights: 'Todos los derechos reservados.',
+    footer_rights: 'Todos os direitos reservados.',
     footer_platform: 'Plataforma Oficial de Pagos y Checkout: Digitall Pay',
     checkout_default_subtext: '🔒 Compra 100% Segura • Acceso Inmediato por E-mail',
     installments_prefix: 'o en cómodas cuotas con tarjeta de crédito / pago único',
@@ -127,18 +144,28 @@ export function translateProduct(product: Product, targetLang: SupportedLanguage
 }
 
 /**
- * Recupera o idioma inicial a partir da URL (?lang=en) ou sessionStorage
+ * Recupera o idioma inicial a partir da URL (?lang=mz, ?lang=en) ou sessionStorage
  */
 export function getInitialLanguage(): SupportedLanguage {
   if (typeof window === 'undefined') return 'pt';
 
-  // 1. Verifica parâmetro na URL (?lang=en, ?lang=es, ?lang=pt)
+  // 1. Verifica parâmetro na URL (?lang=mz, ?lang=pt-mz, ?lang=ao, ?lang=en, ?lang=es, ?lang=pt)
   try {
     const params = new URLSearchParams(window.location.search);
     const paramLang = params.get('lang')?.toLowerCase();
-    if (paramLang === 'en' || paramLang === 'es' || paramLang === 'pt') {
-      sessionStorage.setItem('digitallpay_sales_lang', paramLang);
-      return paramLang;
+    if (paramLang) {
+      if (paramLang === 'mz' || paramLang === 'pt-mz') {
+        sessionStorage.setItem('digitallpay_sales_lang', 'pt-mz');
+        return 'pt-mz';
+      }
+      if (paramLang === 'ao' || paramLang === 'pt-ao') {
+        sessionStorage.setItem('digitallpay_sales_lang', 'pt-ao');
+        return 'pt-ao';
+      }
+      if (paramLang === 'en' || paramLang === 'es' || paramLang === 'pt') {
+        sessionStorage.setItem('digitallpay_sales_lang', paramLang);
+        return paramLang;
+      }
     }
   } catch {
     // noop
@@ -147,7 +174,7 @@ export function getInitialLanguage(): SupportedLanguage {
   // 2. Verifica preferência salva na sessão
   try {
     const saved = sessionStorage.getItem('digitallpay_sales_lang') as SupportedLanguage;
-    if (saved === 'en' || saved === 'es' || saved === 'pt') {
+    if (saved && (saved === 'pt' || saved === 'pt-mz' || saved === 'pt-ao' || saved === 'en' || saved === 'es')) {
       return saved;
     }
   } catch {

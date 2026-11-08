@@ -81,13 +81,15 @@ export interface Product {
   translations?: {
     en?: ProductTranslation;
     es?: ProductTranslation;
+    'pt-mz'?: ProductTranslation;
+    'pt-ao'?: ProductTranslation;
   };
   
   created_at: string;
   updated_at: string;
 }
 
-export type SupportedLanguage = 'pt' | 'en' | 'es';
+export type SupportedLanguage = 'pt' | 'pt-mz' | 'pt-ao' | 'en' | 'es';
 
 export interface ProductTranslation {
   name?: string;

@@ -1024,7 +1024,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       <div className="flex items-center gap-2">
                         <Globe className="w-4 h-4 text-emerald-400" />
                         <h4 className="font-bold text-white text-sm">
-                          Tradução Internacional & Multi-Moeda (PT, EN, ES)
+                          Multi-País, Moedas Globais & Tradução (PT, MZ, AO, EN, ES)
                         </h4>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -1038,11 +1038,17 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       </label>
                     </div>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                      Quando ativado, exibe o seletor de idiomas (<span className="text-white font-semibold">🇧🇷 PT • 🇺🇸 EN • 🇪🇸 ES</span>) no topo da sua página. Ao mudar a língua, a moeda e os preços se convertem automaticamente (ex: <span className="text-emerald-400 font-mono">R$ 197</span> ➔ <span className="text-emerald-400 font-mono">$ 36</span> ➔ <span className="text-emerald-400 font-mono">€ 33</span>) com tradução contextual de toda a copy.
+                      Quando ativado, exibe o seletor internacional (<span className="text-white font-semibold">🇲🇿 Moçambique • 🇧🇷 Brasil • 🇦🇴 Angola • 🇺🇸 English • 🇪🇸 Español</span>) no topo da sua página. Ao mudar, a moeda e os preços se convertem automaticamente (ex: <span className="text-emerald-400 font-mono">2.290 MT</span> ➔ <span className="text-emerald-400 font-mono">R$ 197</span> ➔ <span className="text-emerald-400 font-mono">$ 36</span> ➔ <span className="text-emerald-400 font-mono">€ 33</span>).
                     </p>
                     <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-slate-400">
                       <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
-                        <span>🇧🇷</span> Português ➔ Real (BRL • R$)
+                        <span>🇲🇿</span> Moçambique ➔ Metical (MZN • MT)
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
+                        <span>🇧🇷</span> Brasil ➔ Real (BRL • R$)
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
+                        <span>🇦🇴</span> Angola ➔ Kwanza (AOA • Kz)
                       </span>
                       <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
                         <span>🇺🇸</span> English ➔ Dólar (USD • $)

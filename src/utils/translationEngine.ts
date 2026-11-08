@@ -6,6 +6,13 @@ import { convertCurrency } from './currencyConverter';
 const memoryCache = new Map<string, string>();
 
 /**
+ * Retorna se o idioma é uma variante do português (Brasil, Moçambique ou Angola)
+ */
+export function isPortugueseLanguage(lang: SupportedLanguage): boolean {
+  return lang === 'pt' || lang === 'pt-mz' || lang === 'pt-ao';
+}
+
+/**
  * Decodifica entidades HTML retornadas por serviços de tradução (&quot;, &#39;, &amp;, etc)
  */
 export function decodeHtmlEntities(str: string): string {
@@ -35,7 +42,7 @@ export function hashString(str: string): string {
  * Lê tradução em cache (Memória ou LocalStorage)
  */
 function getCached(text: string, targetLang: SupportedLanguage): string | null {
-  if (!text || targetLang === 'pt') return text;
+  if (!text || isPortugueseLanguage(targetLang)) return text;
   const key = `${targetLang}_${hashString(text.trim())}`;
 
   if (memoryCache.has(key)) {
@@ -61,7 +68,7 @@ function getCached(text: string, targetLang: SupportedLanguage): string | null {
  * Grava tradução em cache (Memória e LocalStorage)
  */
 function setCached(text: string, translated: string, targetLang: SupportedLanguage): void {
-  if (!text || !translated || targetLang === 'pt') return;
+  if (!text || !translated || isPortugueseLanguage(targetLang)) return;
   const key = `${targetLang}_${hashString(text.trim())}`;
   memoryCache.set(key, translated);
 
@@ -78,7 +85,7 @@ function setCached(text: string, translated: string, targetLang: SupportedLangua
  * Tradutor léxico de contingência (caso o usuário esteja sem conexão)
  */
 export function translateLexical(text: string, targetLang: SupportedLanguage): string {
-  if (!text || targetLang === 'pt') return text;
+  if (!text || isPortugueseLanguage(targetLang)) return text;
 
   let res = text;
   if (targetLang === 'en') {
@@ -156,7 +163,7 @@ export function translateLexical(text: string, targetLang: SupportedLanguage): s
  * Traduz um texto único consultando APIs de tradução resilientes com fallback
  */
 export async function translateSingleText(text: string, targetLang: SupportedLanguage): Promise<string> {
-  if (!text || !text.trim() || targetLang === 'pt') return text;
+  if (!text || !text.trim() || isPortugueseLanguage(targetLang)) return text;
 
   // 1. Verifica cache (0ms)
   const cached = getCached(text, targetLang);
@@ -219,7 +226,7 @@ export async function translateSingleText(text: string, targetLang: SupportedLan
  * Traduz um array de textos em lotes concorrentes controlados (4 por vez)
  */
 export async function batchTranslate(texts: string[], targetLang: SupportedLanguage): Promise<string[]> {
-  if (targetLang === 'pt' || !texts.length) return texts;
+  if (isPortugueseLanguage(targetLang) || !texts.length) return texts;
 
   const results: string[] = new Array(texts.length);
   const CHUNK_SIZE = 4;
@@ -246,18 +253,26 @@ export async function batchTranslate(texts: string[], targetLang: SupportedLangu
  * Tradução síncrona imediata (0ms) para renderização sem bloqueio de tela
  */
 export function translateProductSync(product: Product, targetLang: SupportedLanguage): Product {
-  if (!product || targetLang === 'pt') return product;
+  if (!product) return product;
 
-  // 1. Verifica pré-compilados do catálogo de modelos
+  // 1. Definição da Moeda de Destino
+  let targetCurrency = 'BRL';
+  if (targetLang === 'pt-mz') targetCurrency = 'MZN';
+  else if (targetLang === 'pt-ao') targetCurrency = 'AOA';
+  else if (targetLang === 'en') targetCurrency = 'USD';
+  else if (targetLang === 'es') targetCurrency = 'EUR';
+
+  // 2. Verifica se há tradução personalizada pré-definida
   const precompiled = PRECOMPILED_MODEL_TRANSLATIONS[product.id] ||
     (product.slug ? PRECOMPILED_MODEL_TRANSLATIONS[product.slug] : undefined);
 
-  const customTrans = precompiled?.[targetLang] || product.translations?.[targetLang];
+  const customTrans = (precompiled && (precompiled as any)[targetLang]) || (product.translations && (product.translations as any)[targetLang]);
+  if (customTrans?.currency) {
+    targetCurrency = customTrans.currency;
+  }
 
-  // 2. Moeda e Preços
-  const targetCurrency = customTrans?.currency || (targetLang === 'en' ? 'USD' : 'EUR');
+  // 3. Conversão de Preços
   const baseCurrency = product.currency || 'BRL';
-
   const promoPrice = customTrans?.promo_price !== undefined
     ? customTrans.promo_price
     : convertCurrency(product.promo_price, baseCurrency, targetCurrency);
@@ -266,20 +281,37 @@ export function translateProductSync(product: Product, targetLang: SupportedLang
     ? customTrans.original_price
     : convertCurrency(product.original_price, baseCurrency, targetCurrency);
 
-  // 3. Texto de parcelamento
+  // 4. Texto de Parcelamento / Pagamento Contextual
   let installmentsText = customTrans?.installments_text;
   if (!installmentsText) {
-    if (targetLang === 'en') {
+    if (targetLang === 'pt-mz') {
+      installmentsText = 'Pagamento à vista via M-Pesa, E-Mola ou Cartão';
+    } else if (targetLang === 'pt-ao') {
+      installmentsText = 'Pagamento à vista via Multicaixa Express ou Cartão';
+    } else if (targetLang === 'en') {
       const approxInst = (promoPrice / 12).toFixed(2);
       installmentsText = `or 12x of $ ${approxInst} on card • Single payment available`;
-    } else {
+    } else if (targetLang === 'es') {
       const approxInst = (promoPrice / 12).toFixed(2);
       installmentsText = `o 12x de € ${approxInst} con tarjeta • Pago único disponible`;
+    } else {
+      installmentsText = product.installments_text || 'ou em até 12x no cartão de crédito';
     }
   }
 
-  // 4. Módulos
-  const modules: ModuleItem[] = (customTrans?.modules || product.modules || []).map((m) => ({
+  // 5. Se for português (Brasil, Moçambique ou Angola), preserva 100% dos textos originais
+  if (isPortugueseLanguage(targetLang)) {
+    return {
+      ...product,
+      currency: targetCurrency,
+      promo_price: promoPrice,
+      original_price: originalPrice,
+      installments_text: installmentsText,
+    };
+  }
+
+  // 6. Para EN e ES, aplica os textos traduzidos do cache
+  const modules: ModuleItem[] = (customTrans?.modules || product.modules || []).map((m: ModuleItem) => ({
     ...m,
     title: getCached(m.title, targetLang) || translateLexical(m.title, targetLang),
     description: getCached(m.description, targetLang) || translateLexical(m.description, targetLang),
@@ -288,23 +320,20 @@ export function translateProductSync(product: Product, targetLang: SupportedLang
       : undefined,
   }));
 
-  // 5. FAQs
-  const faqs: FaqItem[] = (customTrans?.faqs || product.faqs || []).map((f) => ({
+  const faqs: FaqItem[] = (customTrans?.faqs || product.faqs || []).map((f: FaqItem) => ({
     ...f,
     question: getCached(f.question, targetLang) || translateLexical(f.question, targetLang),
     answer: getCached(f.answer, targetLang) || translateLexical(f.answer, targetLang),
   }));
 
-  // 6. Testemunhos
-  const testimonials: Testimonial[] = (customTrans?.testimonials || product.testimonials || []).map((t) => ({
+  const testimonials: Testimonial[] = (customTrans?.testimonials || product.testimonials || []).map((t: Testimonial) => ({
     ...t,
     content: getCached(t.content, targetLang) || translateLexical(t.content, targetLang),
     role: getCached(t.role, targetLang) || translateLexical(t.role, targetLang),
   }));
 
-  // 7. Recursos
   const features: string[] = (customTrans?.features || product.features || []).map(
-    (feat) => getCached(feat, targetLang) || translateLexical(feat, targetLang)
+    (feat: string) => getCached(feat, targetLang) || translateLexical(feat, targetLang)
   );
 
   return {
@@ -329,22 +358,27 @@ export function translateProductSync(product: Product, targetLang: SupportedLang
  * Tradutor Assíncrono Completo: traduz todo o texto da página de vendas (100% do conteúdo)
  */
 export async function translateProductFull(product: Product, targetLang: SupportedLanguage): Promise<Product> {
-  if (!product || targetLang === 'pt') return product;
+  if (!product) return product;
 
-  // 1. Se já houver tradução estática completa pré-compilada, retorna imediatamente
+  // 1. Se for variante do Português (Brasil, Moçambique ou Angola), retorna imediatamente com a moeda adaptada
+  if (isPortugueseLanguage(targetLang)) {
+    return translateProductSync(product, targetLang);
+  }
+
+  // 2. Se já houver tradução estática completa pré-compilada, retorna imediatamente
   const precompiled = PRECOMPILED_MODEL_TRANSLATIONS[product.id] ||
     (product.slug ? PRECOMPILED_MODEL_TRANSLATIONS[product.slug] : undefined);
 
-  if (precompiled && precompiled[targetLang]) {
+  if (precompiled && (precompiled as any)[targetLang]) {
     return translateProductSync(product, targetLang);
   }
 
-  // 2. Se o usuário salvou uma tradução completa manual no banco, usa ela
-  if (product.translations?.[targetLang]) {
+  // 3. Se o usuário salvou uma tradução completa manual no banco, usa ela
+  if (product.translations && (product.translations as any)[targetLang]) {
     return translateProductSync(product, targetLang);
   }
 
-  // 3. Coleta todos os textos da página para tradução dinâmica em lote
+  // 4. Coleta todos os textos da página para tradução dinâmica em lote
   const textQueue: string[] = [];
   const mapIndex: Record<string, number> = {};
 
@@ -388,7 +422,7 @@ export async function translateProductFull(product: Product, targetLang: Support
     answerIdx: queueText(f.answer),
   }));
 
-  // 4. Executa a tradução em lote
+  // 5. Executa a tradução em lote
   const translatedTexts = await batchTranslate(textQueue, targetLang);
 
   const getTranslated = (idx: number, fallback: string): string => {
@@ -396,7 +430,7 @@ export async function translateProductFull(product: Product, targetLang: Support
     return translatedTexts[idx] || fallback;
   };
 
-  // 5. Moeda e Preços
+  // 6. Moeda e Preços
   const targetCurrency = targetLang === 'en' ? 'USD' : 'EUR';
   const promoPrice = convertCurrency(product.promo_price, product.currency || 'BRL', targetCurrency);
   const originalPrice = convertCurrency(product.original_price, product.currency || 'BRL', targetCurrency);
@@ -410,7 +444,7 @@ export async function translateProductFull(product: Product, targetLang: Support
     installmentsText = `o 12x de € ${approxInst} con tarjeta • Pago único disponible`;
   }
 
-  // 6. Montagem dos blocos
+  // 7. Montagem dos blocos
   const translatedFeatures = featureIndices.map((idx, i) =>
     getTranslated(idx, product.features[i])
   );

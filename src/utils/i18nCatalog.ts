@@ -481,3 +481,4 @@ export const PRECOMPILED_MODEL_TRANSLATIONS: Record<string, { en: ProductTransla
     },
   },
 };
+

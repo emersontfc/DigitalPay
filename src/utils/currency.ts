@@ -6,10 +6,10 @@ export interface CurrencyOption {
 
 export const SUPPORTED_CURRENCIES: CurrencyOption[] = [
   { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro (R$)' },
+  { code: 'MZN', symbol: 'MT', name: 'Metical Moçambicano (MT)' },
+  { code: 'AOA', symbol: 'Kz', name: 'Kwanza Angolano (Kz)' },
   { code: 'USD', symbol: '$', name: 'Dólar Americano ($)' },
   { code: 'EUR', symbol: '€', name: 'Euro (€)' },
-  { code: 'AOA', symbol: 'Kz', name: 'Kwanza Angolano (Kz)' },
-  { code: 'MZN', symbol: 'MT', name: 'Metical Moçambicano (MT)' },
   { code: 'CVE', symbol: 'Esc', name: 'Escudo Cabo-verdiano (Esc)' },
   { code: 'GBP', symbol: '£', name: 'Libra Esterlina (£)' },
 ];
@@ -27,14 +27,29 @@ export function formatPrice(amount: number | undefined | null, currencyCode?: st
   const symbol = getCurrencySymbol(currencyCode);
   const code = (currencyCode || 'BRL').toUpperCase();
 
+  // 1. Moçambique: Metical (ex: 2.290 MT)
+  if (code === 'MZN' || symbol === 'MT') {
+    const formatted = val.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    return `${formatted} MT`;
+  }
+
+  // 2. Angola: Kwanza (ex: 32.800 Kz)
+  if (code === 'AOA' || symbol === 'Kz') {
+    const formatted = val.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    return `${formatted} Kz`;
+  }
+
+  // 3. Dólar / Libra: separador decimal com ponto
   if (code === 'USD' || code === 'GBP') {
     return `${symbol} ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  // 4. Euro: formato europeu
   if (code === 'EUR') {
     return `${symbol} ${val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  // 5. Brasil: Real
   return `${symbol} ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 

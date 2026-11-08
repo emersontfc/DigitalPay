@@ -40,6 +40,13 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     setIsOpen(false);
   };
 
+  const getShortCode = (code: SupportedLanguage) => {
+    if (code === 'pt-mz') return 'MZ';
+    if (code === 'pt-ao') return 'AO';
+    if (code === 'pt') return 'PT';
+    return code.toUpperCase();
+  };
+
   // 1. VARIANTE PILLS (Bandeiras lado a lado)
   if (variant === 'pills') {
     return (
@@ -59,7 +66,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               title={`${opt.label} (${opt.currencySymbol})`}
             >
               <span className="text-sm">{opt.flag}</span>
-              <span className="uppercase text-[10px] sm:text-[11px] font-black">{opt.code}</span>
+              <span className="uppercase text-[10px] sm:text-[11px] font-black">{getShortCode(opt.code)}</span>
               <span className={`text-[9px] sm:text-[10px] opacity-80 ${isActive ? 'text-slate-950 font-bold' : 'text-slate-500'}`}>
                 {opt.currencySymbol}
               </span>
@@ -77,11 +84,11 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-slate-950/85 hover:bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shadow-sm hover:border-slate-700 active:scale-95"
-        title="Alterar idioma e moeda da oferta"
+        title="Alterar país, moeda e idioma da oferta"
       >
         <span className="text-sm">{activeOption.flag}</span>
         <span className="uppercase tracking-wider text-[10px] sm:text-[11px] font-black hidden sm:inline">
-          {activeOption.code}
+          {getShortCode(activeOption.code)}
         </span>
         <span className="text-[10px] sm:text-[11px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
           {activeOption.currencySymbol}
@@ -91,12 +98,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
       {/* Menu suspenso flutuante com clamp para não vazar a tela no celular */}
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-52 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
           <div className="px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800/80 mb-1">
-            Idioma & Moeda
+            País, Idioma & Moeda
           </div>
 
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 max-h-72 overflow-y-auto">
             {SUPPORTED_LANGUAGES.map((opt) => {
               const isSelected = opt.code === currentLang;
               return (
@@ -110,17 +117,17 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg">{opt.flag}</span>
-                    <div>
-                      <span className="block leading-tight font-semibold">{opt.label}</span>
-                      <span className="text-[10px] text-slate-500 block">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-lg shrink-0">{opt.flag}</span>
+                    <div className="min-w-0">
+                      <span className="block leading-tight font-semibold truncate">{opt.label}</span>
+                      <span className="text-[10px] text-slate-500 block truncate">
                         Moeda: {opt.currency} ({opt.currencySymbol})
                       </span>
                     </div>
                   </div>
 
-                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3] shrink-0 ml-1.5" />}
                 </button>
               );
             })}
