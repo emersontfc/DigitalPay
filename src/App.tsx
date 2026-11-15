@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { HomePage } from './pages/public/HomePage';
 import { SalesPage } from './pages/public/SalesPage';
+import { PaymentReturnPage } from './pages/public/PaymentReturnPage';
+import { CustomerPurchasesPage } from './pages/public/CustomerPurchasesPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { LoginPage } from './pages/auth/LoginPage';
 
@@ -30,6 +32,13 @@ export function App() {
 
           {/* Páginas de vendas públicas com URLs amigáveis */}
           <Route path="/p/:slug" element={<SalesPage />} />
+
+          {/* Fluxo Oficial PaySuite: Retorno de Pagamento e Entrega */}
+          <Route path="/pagamento/retorno" element={<PaymentReturnPage />} />
+
+          {/* Área do Cliente: Minhas Compras & Entregáveis */}
+          <Route path="/minhas-compras" element={<CustomerPurchasesPage />} />
+          <Route path="/compras" element={<Navigate to="/minhas-compras" replace />} />
 
           {/* Redirecionamentos de conveniência */}
           <Route path="/painel" element={<Navigate to="/admin" replace />} />

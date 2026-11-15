@@ -85,9 +85,17 @@ export interface Product {
     'pt-ao'?: ProductTranslation;
   };
   
+  // Entregáveis & Entrega Automática PaySuite
+  deliverables?: import('./deliverables').ProductDeliverable[];
+  delivery_mode?: import('./deliverables').DeliveryMode; // 'automatic' | 'manual'
+  access_expires_days?: number; // 0 = ilimitado
+  max_downloads?: number; // 0 = ilimitado
+
   created_at: string;
   updated_at: string;
 }
+
+export * from './deliverables';
 
 export type SupportedLanguage = 'pt' | 'pt-mz' | 'pt-ao' | 'en' | 'es';
 

@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { fetchProductBySlug } from '../../lib/supabase';
 import { TemplateRenderer } from '../../components/templates/TemplateRenderer';
 import { FloatingWhatsAppButton } from '../../components/common/FloatingWhatsAppButton';
+import { PaySuiteCheckoutModal } from '../../components/checkout/PaySuiteCheckoutModal';
 import { initFacebookPixel } from '../../utils/pixel';
 import { useSalesPageLanguage, translateProductSync, translateProductFull } from '../../utils/i18n';
 import { RefreshCw, ArrowLeft, AlertCircle } from 'lucide-react';
@@ -14,6 +15,17 @@ export const SalesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentLang] = useSalesPageLanguage();
   const [translatedProduct, setTranslatedProduct] = useState<Product | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenCheckout = () => {
+      setIsCheckoutOpen(true);
+    };
+    window.addEventListener('digitallpay_open_checkout', handleOpenCheckout);
+    return () => {
+      window.removeEventListener('digitallpay_open_checkout', handleOpenCheckout);
+    };
+  }, []);
 
   // Helper para atualizar ou criar meta tag
   const setMetaTag = (property: string, content: string) => {
@@ -110,6 +122,16 @@ export const SalesPage: React.FC = () => {
     return (
       <>
         <TemplateRenderer product={activeProduct} />
+
+        {/* Modal de Checkout Seguro Integrado ao PaySuite */}
+        <PaySuiteCheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          product={activeProduct}
+          currency={activeProduct.currency}
+          promoPrice={activeProduct.promo_price}
+        />
+
         {/* Botão de Suporte WhatsApp Flutuante */}
         {activeProduct.whatsapp_number && (
           <FloatingWhatsAppButton

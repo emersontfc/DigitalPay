@@ -13,6 +13,7 @@ import { SupabaseConfigModal } from '../../components/admin/SupabaseConfigModal'
 import { AdminUsersModal } from '../../components/admin/AdminUsersModal';
 import { ModelManagerModal } from '../../components/admin/ModelManagerModal';
 import { ChangePasswordModal } from '../../components/admin/ChangePasswordModal';
+import { SalesAndDeliveriesTab } from '../../components/admin/SalesAndDeliveriesTab';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Plus,
@@ -33,7 +34,9 @@ import {
   Users,
   Bookmark,
   ArrowRight,
-  KeyRound
+  KeyRound,
+  CreditCard,
+  Truck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -45,6 +48,7 @@ export const AdminDashboard: React.FC = () => {
   const [filterTemplate, setFilterTemplate] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mainTab, setMainTab] = useState<'products' | 'sales'>('products');
 
   // Modais
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -240,26 +244,62 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Linha 2: Barra de Ações Responsiva (Scroll horizontal suave no mobile sem quebra feia) */}
           <div className="py-2.5 border-t border-slate-800/70 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+            {/* Seletor de Módulo Principal: Páginas vs Vendas & Entregas */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
+              <button
+                onClick={() => setMainTab('products')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  mainTab === 'products'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Páginas de Vendas</span>
+              </button>
+
+              <button
+                onClick={() => setMainTab('sales')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  mainTab === 'sales'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>Vendas & Entregas</span>
+                <span className={`text-[9px] uppercase font-black px-1.5 py-0.2 rounded-full ${
+                  mainTab === 'sales' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-400'
+                }`}>
+                  PaySuite
+                </span>
+              </button>
+            </div>
+
             {/* Botão Principal: Criar Nova Página */}
-            <button
-              onClick={() => {
-                setEditingProduct(null);
-                setIsEditorOpen(true);
-              }}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2 shrink-0 cursor-pointer"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Criar Nova Página</span>
-            </button>
+            {mainTab === 'products' && (
+              <button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setIsEditorOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center gap-2 shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Criar Nova Página</span>
+              </button>
+            )}
 
             {/* Biblioteca de Modelos */}
-            <button
-              onClick={() => setIsModelModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition-all border border-slate-700/60 flex items-center gap-1.5 shrink-0 cursor-pointer"
-            >
-              <Bookmark className="w-3.5 h-3.5 text-purple-400" />
-              <span>Modelos & Templates</span>
-            </button>
+            {mainTab === 'products' && (
+              <button
+                onClick={() => setIsModelModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition-all border border-slate-700/60 flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+                <span>Modelos & Templates</span>
+              </button>
+            )}
 
             {/* Gestão de Administradores (Exclusivo Emerson) */}
             {(user?.role === 'super_admin' || user?.email === 'emersontorres42@gmail.com') && (
@@ -291,7 +331,11 @@ export const AdminDashboard: React.FC = () => {
 
       {/* 2. Conteúdo Principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* Banner de Boas-Vindas & KPIs */}
+        {mainTab === 'sales' ? (
+          <SalesAndDeliveriesTab />
+        ) : (
+          <>
+            {/* Banner de Boas-Vindas & KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm">
             <div className="flex items-center justify-between text-slate-400 mb-2">
@@ -607,6 +651,8 @@ export const AdminDashboard: React.FC = () => {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </main>
 

@@ -45,7 +45,27 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
       // Ignora silenciosamente se o canvas não estiver disponível
     }
 
-    // 3. Se a URL for um link válido, abre em nova aba
+    // 3. Verifica se deve acionar o checkout seguro do PaySuite
+    const isMozambique = currency === 'MZN' || currency === 'MT';
+    const isDefaultOrPaySuite =
+      !ctaUrl ||
+      ctaUrl === '#' ||
+      ctaUrl === 'paysuite' ||
+      ctaUrl.includes('paysuite') ||
+      ctaUrl === 'https://pay.kiwify.com.br' ||
+      ctaUrl === 'https://kiwify.com.br' ||
+      isMozambique;
+
+    if (isDefaultOrPaySuite) {
+      window.dispatchEvent(
+        new CustomEvent('digitallpay_open_checkout', {
+          detail: { productName, promoPrice, currency }
+        })
+      );
+      return;
+    }
+
+    // 4. Se for link externo configurado manualmente (ex: Stripe ou Kiwify específico), abre em nova aba
     if (ctaUrl) {
       window.open(ctaUrl, '_blank', 'noopener,noreferrer');
     }

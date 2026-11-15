@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Product, TemplateType, ModuleItem, Testimonial, FaqItem, PageModel } from '../../types';
+import { Product, TemplateType, ModuleItem, Testimonial, FaqItem, PageModel, ProductDeliverable, DeliveryMode } from '../../types';
 import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
 import { ModelManagerModal } from './ModelManagerModal';
+import { DeliverablesManager } from './DeliverablesManager';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import { ImageUploadInput } from '../common/ImageUploadInput';
 import { VideoPlayer, resolveVideoSource } from '../common/VideoPlayer';
@@ -31,7 +32,8 @@ import {
   Volume2,
   BarChart3,
   MessageCircle,
-  Globe
+  Globe,
+  Package
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -47,7 +49,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'faq' | 'preview'>('geral');
+  const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'faq' | 'entregaveis' | 'preview'>('geral');
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,6 +81,12 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [whatsappMessage, setWhatsappMessage] = useState(product?.whatsapp_message || '');
   const [multilangEnabled, setMultilangEnabled] = useState<boolean>(product?.multilang_enabled !== false);
   const [previewLang] = useSalesPageLanguage();
+
+  // Entregáveis & PaySuite
+  const [deliverables, setDeliverables] = useState<ProductDeliverable[]>(product?.deliverables || []);
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(product?.delivery_mode || 'automatic');
+  const [accessExpiresDays, setAccessExpiresDays] = useState<number>(product?.access_expires_days || 0);
+  const [maxDownloads, setMaxDownloads] = useState<number>(product?.max_downloads || 0);
 
   const [guaranteeDays, setGuaranteeDays] = useState<number>(product?.guarantee_days || 7);
   const [countdownEnabled, setCountdownEnabled] = useState<boolean>(product?.countdown_enabled !== undefined ? product.countdown_enabled : true);
@@ -224,6 +232,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     modules,
     testimonials,
     faqs,
+    deliverables,
+    delivery_mode: deliveryMode,
+    access_expires_days: Number(accessExpiresDays) || 0,
+    max_downloads: Number(maxDownloads) || 0,
     created_at: product?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -255,6 +267,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     if (d.modules) setModules([...d.modules]);
     if (d.testimonials) setTestimonials([...d.testimonials]);
     if (d.faqs) setFaqs([...d.faqs]);
+    if (d.deliverables) setDeliverables([...d.deliverables]);
+    if (d.delivery_mode) setDeliveryMode(d.delivery_mode);
+    if (d.access_expires_days !== undefined) setAccessExpiresDays(d.access_expires_days);
+    if (d.max_downloads !== undefined) setMaxDownloads(d.max_downloads);
   };
 
   const handleManualSave = async () => {
@@ -309,6 +325,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         modules,
         testimonials,
         faqs,
+        deliverables,
+        delivery_mode: deliveryMode,
+        access_expires_days: Number(accessExpiresDays) || 0,
+        max_downloads: Number(maxDownloads) || 0,
       });
 
       setSaveSuccess(true);
@@ -432,6 +452,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
               { id: 'preco', label: '3. Preço & Pixels', fullLabel: '3. Preço & Checkout', icon: DollarSign },
               { id: 'conteudo', label: '4. Conteúdo', fullLabel: '4. Benefícios & Módulos', icon: Sparkles },
               { id: 'faq', label: '5. Garantia & FAQ', fullLabel: '5. Garantia & FAQ', icon: HelpCircle },
+              { id: 'entregaveis', label: '6. Entregáveis', fullLabel: '6. Entregáveis do Produto', icon: Package },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1358,6 +1379,22 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Aba 6: Entregáveis do Produto & PaySuite */}
+              {activeTab === 'entregaveis' && (
+                <div className="space-y-6">
+                  <DeliverablesManager
+                    deliverables={deliverables}
+                    onChange={setDeliverables}
+                    deliveryMode={deliveryMode}
+                    onDeliveryModeChange={setDeliveryMode}
+                    accessExpiresDays={accessExpiresDays}
+                    onAccessExpiresDaysChange={setAccessExpiresDays}
+                    maxDownloads={maxDownloads}
+                    onMaxDownloadsChange={setMaxDownloads}
+                  />
                 </div>
               )}
             </form>

@@ -236,6 +236,10 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     facebook_pixel_id: product.facebook_pixel_id ? product.facebook_pixel_id.trim() : undefined,
     multilang_enabled: product.multilang_enabled !== undefined ? product.multilang_enabled : true,
     translations: product.translations || {},
+    delivery_mode: product.delivery_mode || 'automatic',
+    access_expires_days: Number(product.access_expires_days) || 0,
+    max_downloads: Number(product.max_downloads) || 0,
+    deliverables: product.deliverables || [],
     created_at: product.created_at || now,
     updated_at: now,
   };
@@ -268,6 +272,10 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
         delete (compatiblePayload as any).vsl_autoplay;
         delete (compatiblePayload as any).translations;
         delete (compatiblePayload as any).multilang_enabled;
+        delete (compatiblePayload as any).deliverables;
+        delete (compatiblePayload as any).delivery_mode;
+        delete (compatiblePayload as any).access_expires_days;
+        delete (compatiblePayload as any).max_downloads;
 
         const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
         if (retryResult.error) {

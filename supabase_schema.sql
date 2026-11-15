@@ -265,4 +265,117 @@ VALUES (
     status = 'approved',
     password = '112212';
 
+-- =========================================================================
+-- 7. GESTÃO DE ENTREGÁVEIS E ENTREGA AUTOMÁTICA PAYSUITE
+-- =========================================================================
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS delivery_mode TEXT DEFAULT 'automatic' CHECK (delivery_mode IN ('automatic', 'manual'));
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS access_expires_days INTEGER DEFAULT 0;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS max_downloads INTEGER DEFAULT 0;
+        ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deliverables JSONB DEFAULT '[]'::jsonb;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.product_deliverables (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    type TEXT NOT NULL CHECK (type IN ('file', 'link', 'text', 'license_code')),
+    file_path TEXT,
+    file_name TEXT,
+    file_size_bytes BIGINT,
+    file_mime_type TEXT,
+    external_url TEXT,
+    content_text TEXT,
+    download_limit INTEGER DEFAULT 0,
+    expires_in_days INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reference TEXT UNIQUE NOT NULL,
+    product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
+    product_name TEXT NOT NULL,
+    customer_name TEXT NOT NULL,
+    customer_email TEXT NOT NULL,
+    customer_phone TEXT,
+    amount NUMERIC(10, 2) NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'MZN',
+    payment_method TEXT DEFAULT 'paysuite',
+    payment_gateway TEXT DEFAULT 'paysuite',
+    gateway_payment_id TEXT,
+    checkout_url TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed', 'refunded', 'manual_approved')),
+    delivery_status TEXT NOT NULL DEFAULT 'pending' CHECK (delivery_status IN ('pending', 'delivered', 'revoked')),
+    delivery_mode TEXT NOT NULL DEFAULT 'automatic' CHECK (delivery_mode IN ('automatic', 'manual')),
+    access_token TEXT UNIQUE NOT NULL,
+    access_expires_at TIMESTAMP WITH TIME ZONE,
+    paid_at TIMESTAMP WITH TIME ZONE,
+    delivered_at TIMESTAMP WITH TIME ZONE,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.order_deliverables_access (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+    deliverable_id UUID REFERENCES public.product_deliverables(id) ON DELETE CASCADE,
+    downloads_count INTEGER DEFAULT 0,
+    max_downloads INTEGER DEFAULT 0,
+    last_accessed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.webhook_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    gateway TEXT NOT NULL DEFAULT 'paysuite',
+    event_type TEXT NOT NULL,
+    event_id TEXT,
+    reference TEXT,
+    payload JSONB NOT NULL,
+    headers JSONB,
+    signature_valid BOOLEAN NOT NULL DEFAULT false,
+    status TEXT NOT NULL DEFAULT 'processed' CHECK (status IN ('processed', 'ignored', 'failed')),
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.order_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    actor_email TEXT NOT NULL,
+    reason TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.product_deliverables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_deliverables_access ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.webhook_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Read Order by Reference" ON public.orders;
+CREATE POLICY "Public Read Order by Reference" ON public.orders FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin Full Access Orders" ON public.orders;
+CREATE POLICY "Admin Full Access Orders" ON public.orders FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin Full Access Deliverables" ON public.product_deliverables;
+CREATE POLICY "Admin Full Access Deliverables" ON public.product_deliverables FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin Full Access Webhooks" ON public.webhook_logs;
+CREATE POLICY "Admin Full Access Webhooks" ON public.webhook_logs FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin Full Access Audit" ON public.order_audit_logs;
+CREATE POLICY "Admin Full Access Audit" ON public.order_audit_logs FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Admin Full Access Access" ON public.order_deliverables_access;
+CREATE POLICY "Admin Full Access Access" ON public.order_deliverables_access FOR ALL USING (true) WITH CHECK (true);
+
+
 
