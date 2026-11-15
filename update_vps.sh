@@ -25,8 +25,16 @@ npm run build
 
 # 4. Atualiza configuração do Nginx com suporte a API
 echo "⚙️ Atualizando configuração do Nginx..."
+sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 sudo cp /var/www/digitalpay/nginx.conf /etc/nginx/sites-available/digitalpay 2>/dev/null || true
+sudo sed -i 's/default_server//g' /etc/nginx/sites-available/digitalpay 2>/dev/null || true
 sudo ln -sf /etc/nginx/sites-available/digitalpay /etc/nginx/sites-enabled/ 2>/dev/null || true
+
+if [ -f "/etc/letsencrypt/live/digitallpay.store/fullchain.pem" ]; then
+    echo "🔒 Certificado SSL Let's Encrypt detectado, assegurando HTTPS..."
+    sudo certbot --nginx -d digitallpay.store -d www.digitallpay.store --non-interactive --agree-tos --redirect --keep-until-expiring 2>/dev/null || true
+fi
+
 sudo nginx -t
 sudo systemctl reload nginx
 
