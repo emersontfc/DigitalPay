@@ -4,6 +4,7 @@ import { ShoppingCart, ShieldCheck, Zap, ArrowRight, Lock } from 'lucide-react';
 import { trackInitiateCheckout } from '../../utils/pixel';
 
 interface CheckoutButtonProps {
+  productId?: string;
   ctaText: string;
   ctaUrl: string;
   ctaSubtext?: string;
@@ -18,6 +19,7 @@ interface CheckoutButtonProps {
 }
 
 export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
+  productId,
   ctaText,
   ctaUrl,
   ctaSubtext,
@@ -45,30 +47,32 @@ export const CheckoutButton: React.FC<CheckoutButtonProps> = ({
       // Ignora silenciosamente se o canvas não estiver disponível
     }
 
-    // 3. Verifica se deve acionar o checkout seguro do PaySuite
-    const isMozambique = currency === 'MZN' || currency === 'MT';
-    const isDefaultOrPaySuite =
-      !ctaUrl ||
-      ctaUrl === '#' ||
-      ctaUrl === 'paysuite' ||
-      ctaUrl.includes('paysuite') ||
-      ctaUrl === 'https://pay.kiwify.com.br' ||
-      ctaUrl === 'https://kiwify.com.br' ||
-      isMozambique;
+    // 3. Salva produto no localStorage para recuperação imediata de entregáveis no retorno do PaySuite
+    try {
+      localStorage.setItem('digitalpay_last_checkout_product', JSON.stringify({
+        productId,
+        productName,
+        promoPrice,
+        currency,
+        ctaUrl,
+        timestamp: Date.now()
+      }));
+    } catch {}
 
-    if (isDefaultOrPaySuite) {
-      window.dispatchEvent(
-        new CustomEvent('digitallpay_open_checkout', {
-          detail: { productName, promoPrice, currency }
-        })
-      );
+    // 4. Redirecionamento DIRETO para o Link de Pagamento do PaySuite / Gateway
+    // Pula qualquer formulário intermediário, pois o PaySuite já pede Nome, E-mail e Telemóvel
+    if (ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://'))) {
+      window.location.href = ctaUrl;
       return;
     }
 
-    // 4. Se for link externo configurado manualmente (ex: Stripe ou Kiwify específico), abre em nova aba
-    if (ctaUrl) {
-      window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+    if (ctaUrl && ctaUrl !== '#' && ctaUrl !== 'paysuite') {
+      window.location.href = ctaUrl;
+      return;
     }
+
+    // Se o link ainda não foi configurado pelo administrador
+    window.location.href = '/pagamento/retorno';
   };
 
   const variantStyles = ({

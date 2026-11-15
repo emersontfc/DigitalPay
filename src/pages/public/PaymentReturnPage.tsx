@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { fetchOrderDetails, simulatePaySuiteWebhook, confirmOrderReturn } from '../../lib/orders';
+import { fetchOrderDetails, simulatePaySuiteWebhook, confirmOrderReturn, saveDirectPurchase } from '../../lib/orders';
+import { fetchProducts } from '../../lib/supabase';
 import { Order, ProductDeliverable } from '../../types';
 import { formatPrice } from '../../utils/currency';
 import { BrandLogo } from '../../components/common/BrandLogo';
@@ -24,7 +25,8 @@ import {
   KeyRound,
   FileText,
   ArrowRight,
-  Search
+  Search,
+  Mail
 } from 'lucide-react';
 
 export const PaymentReturnPage: React.FC = () => {
@@ -44,51 +46,94 @@ export const PaymentReturnPage: React.FC = () => {
   const [pollingCount, setPollingCount] = useState(0);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [buyerEmail, setBuyerEmail] = useState('');
+  const [savedToPurchases, setSavedToPurchases] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
 
-  // Consulta inicial e polling para detectar webhook em tempo real
+  // Consulta inicial e recuperação automática de entregáveis do PaySuite
   const checkStatus = async (refToCheck = reference, tokenToCheck = token) => {
-    if (!refToCheck) {
-      setStatus('not_found');
-      return;
+    // 1. Se tem referência informada (na URL ou localStorage)
+    if (refToCheck) {
+      try {
+        const result = await fetchOrderDetails(refToCheck, tokenToCheck);
+        if (result.success && result.order) {
+          setOrder(result.order);
+          const ordStatus = result.order.status;
+          if (ordStatus === 'paid' || ordStatus === 'manual_approved') {
+            setStatus('paid');
+            if (result.order.customer_email) {
+              setBuyerEmail(result.order.customer_email);
+              setSavedToPurchases(true);
+            }
+            if (result.deliverables && result.deliverables.length > 0) {
+              setDeliverables(result.deliverables);
+            }
+            try {
+              confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            } catch {}
+            return;
+          } else if (ordStatus === 'failed') {
+            setStatus('failed');
+            return;
+          } else {
+            setStatus('pending');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao consultar referência de pedido:', err);
+      }
     }
 
+    // 2. Se o cliente veio direto do link de pagamento do PaySuite sem ref na URL:
+    // Recupera imediatamente o último produto clicado na loja
     try {
-      const result = await fetchOrderDetails(refToCheck, tokenToCheck);
+      const lastClickedRaw = localStorage.getItem('digitalpay_last_checkout_product');
+      if (lastClickedRaw) {
+        const lastClicked = JSON.parse(lastClickedRaw);
+        const prods = await fetchProducts();
+        const matched = prods.find(p =>
+          (lastClicked.productId && p.id === lastClicked.productId) ||
+          p.name.toLowerCase() === (lastClicked.productName || '').toLowerCase()
+        );
 
-      if (!result.success || !result.order) {
-        setStatus('not_found');
-        return;
-      }
-
-      setOrder(result.order);
-
-      const ordStatus = result.order.status;
-
-      if (ordStatus === 'paid' || ordStatus === 'manual_approved') {
-        setStatus('paid');
-        if (result.deliverables && result.deliverables.length > 0) {
-          setDeliverables(result.deliverables);
+        if (matched) {
+          const savedEmail = localStorage.getItem('digitalpay_customer_email') || '';
+          const directOrder: Order = {
+            id: `ord_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`,
+            reference: reference || `DP-${Date.now().toString(36).toUpperCase()}`,
+            product_id: matched.id,
+            product_name: matched.name,
+            customer_name: 'Cliente PaySuite',
+            customer_email: savedEmail,
+            amount: lastClicked.promoPrice || matched.promo_price,
+            currency: lastClicked.currency || matched.currency || 'MZN',
+            payment_gateway: 'paysuite',
+            status: 'paid',
+            delivery_status: 'delivered',
+            delivery_mode: 'automatic',
+            access_token: 'direct',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          setOrder(directOrder);
+          if (savedEmail) {
+            setBuyerEmail(savedEmail);
+            setSavedToPurchases(true);
+          }
+          setDeliverables(matched.deliverables || []);
+          setStatus('paid');
+          try {
+            confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          } catch {}
+          return;
         }
-
-        // Dispara efeito de confetes uma única vez ao confirmar
-        try {
-          confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.6 }
-          });
-        } catch {}
-      } else if (ordStatus === 'failed') {
-        setStatus('failed');
-      } else {
-        setStatus('pending');
       }
     } catch (err) {
-      console.error('Erro ao consultar status:', err);
-      if (status === 'loading') {
-        setStatus('not_found');
-      }
+      console.warn('Erro ao carregar último produto:', err);
     }
+
+    setStatus('not_found');
   };
 
   useEffect(() => {
@@ -144,6 +189,23 @@ export const PaymentReturnPage: React.FC = () => {
     setStatus('loading');
     setReference(clean);
     checkStatus(clean, '');
+  };
+
+  const handleSaveEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = buyerEmail.trim().toLowerCase();
+    if (!order || !clean.includes('@')) return;
+    setIsSavingEmail(true);
+    try {
+      localStorage.setItem('digitalpay_customer_email', clean);
+      await saveDirectPurchase(order, clean);
+      setOrder(prev => (prev ? { ...prev, customer_email: clean } : prev));
+      setSavedToPurchases(true);
+    } catch (err) {
+      console.error('Erro ao vincular e-mail:', err);
+    } finally {
+      setIsSavingEmail(false);
+    }
   };
 
   return (
@@ -330,6 +392,64 @@ export const PaymentReturnPage: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Vincular e-mail para acesso permanente em Minhas Compras */}
+              {savedToPurchases || order?.customer_email ? (
+                <div className="p-4 sm:p-5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 text-emerald-300">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>
+                      Compra vinculada a <strong className="text-white font-mono">{order?.customer_email || buyerEmail}</strong>. Seus entregáveis podem ser consultados a qualquer momento em <strong>Minhas Compras</strong>.
+                    </span>
+                  </div>
+                  <Link
+                    to="/minhas-compras"
+                    className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/30 transition-colors flex items-center gap-1"
+                  >
+                    <span>Ver Minhas Compras</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              ) : (
+                <div className="p-5 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-400" />
+                    <h4 className="text-xs sm:text-sm font-bold text-white">
+                      Deseja guardar este acesso para consultar mais tarde?
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Insira o mesmo e-mail usado no PaySuite para registrar este produto na área <strong>Minhas Compras</strong> e acessar seus entregáveis sempre que precisar, em qualquer dispositivo.
+                  </p>
+                  <form onSubmit={handleSaveEmail} className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <input
+                      type="email"
+                      required
+                      value={buyerEmail}
+                      onChange={e => setBuyerEmail(e.target.value)}
+                      placeholder="seuemail@exemplo.com"
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSavingEmail}
+                      className="px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSavingEmail ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Salvando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Salvar em Minhas Compras</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
                 </div>
               )}
 

@@ -89,6 +89,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
           {showOffer ? (
             <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
               <CheckoutButton
+                productId={product.id}
                 ctaText={product.cta_text}
                 ctaUrl={product.cta_url}
                 ctaSubtext={product.cta_subtext}
@@ -283,6 +284,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
             </div>
 
             <CheckoutButton
+              productId={product.id}
               ctaText={product.cta_text}
               ctaUrl={product.cta_url}
               ctaSubtext={product.cta_subtext}

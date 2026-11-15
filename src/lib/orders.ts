@@ -201,6 +201,58 @@ export async function fetchOrderDetails(reference: string, token?: string): Prom
 }
 
 /**
+ * Vincula e salva uma compra direta com o e-mail do cliente
+ * Permitindo acesso futuro através da área Minhas Compras
+ */
+export async function saveDirectPurchase(order: Order, email: string): Promise<boolean> {
+  const cleanEmail = email.trim().toLowerCase();
+  const updatedOrder: Order = {
+    ...order,
+    customer_email: cleanEmail,
+    paid_at: order.paid_at || new Date().toISOString(),
+    delivered_at: order.delivered_at || new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  // 1. Tenta salvar na API backend se estiver ativa
+  try {
+    const res = await fetch(`${API_BASE}/api/orders/save-direct`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedOrder)
+    });
+    if (res.ok) {
+      // continua para salvar local/supabase também
+    }
+  } catch {}
+
+  // 2. Salva no Supabase se disponível
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      await client.from('orders').upsert(updatedOrder);
+    } catch (e) {
+      console.warn('Erro ao salvar compra no Supabase:', e);
+    }
+  }
+
+  // 3. Salva no localStorage para persistência imediata no navegador
+  const localOrders: Order[] = JSON.parse(localStorage.getItem('digitalpay_orders') || '[]');
+  const existingIdx = localOrders.findIndex(
+    o => o.reference === updatedOrder.reference || 
+         (o.product_id === updatedOrder.product_id && o.customer_email === updatedOrder.customer_email)
+  );
+  if (existingIdx >= 0) {
+    localOrders[existingIdx] = updatedOrder;
+  } else {
+    localOrders.unshift(updatedOrder);
+  }
+  localStorage.setItem('digitalpay_orders', JSON.stringify(localOrders));
+
+  return true;
+}
+
+/**
  * Histórico de compras do cliente (Minhas Compras)
  */
 export async function fetchCustomerPurchases(email: string): Promise<Order[]> {
