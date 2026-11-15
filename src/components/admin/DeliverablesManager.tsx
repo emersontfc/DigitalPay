@@ -309,13 +309,13 @@ export const DeliverablesManager: React.FC<DeliverablesManagerProps> = ({
                 onChange={e => onDeliveryModeChange(e.target.value as DeliveryMode)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
               >
-                <option value="automatic">⚡ Automática (Imediata via PaySuite)</option>
-                <option value="manual">🛡️ Aprovação Manual (Pelo Administrador)</option>
+                <option value="automatic">⚡ Automática (Imediata ao Concluir Pagamento)</option>
+                <option value="manual">🛡️ Aprovação Manual (Comprovativo via WhatsApp)</option>
               </select>
               <p className="text-[11px] text-slate-400 mt-2">
                 {deliveryMode === 'automatic'
-                  ? 'Libera os links e downloads assim que o webhook do PaySuite confirma o pagamento.'
-                  : 'O pedido fica aguardando sua autorização manual no painel antes de liberar o acesso.'}
+                  ? 'Libera os links e downloads imediatamente ao retornar do link de pagamento do PaySuite.'
+                  : 'O pedido fica aguardando conferência do comprovativo para você liberar o acesso em 1 clique.'}
               </p>
             </div>
 

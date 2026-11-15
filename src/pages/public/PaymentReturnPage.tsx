@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { fetchOrderDetails, simulatePaySuiteWebhook } from '../../lib/orders';
+import { fetchOrderDetails, simulatePaySuiteWebhook, confirmOrderReturn } from '../../lib/orders';
 import { Order, ProductDeliverable } from '../../types';
 import { formatPrice } from '../../utils/currency';
 import { BrandLogo } from '../../components/common/BrandLogo';
@@ -23,14 +23,19 @@ import {
   FileArchive,
   KeyRound,
   FileText,
-  ArrowRight
+  ArrowRight,
+  Search
 } from 'lucide-react';
 
 export const PaymentReturnPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const reference = searchParams.get('ref') || searchParams.get('reference') || '';
-  const token = searchParams.get('token') || '';
+  const urlRef = searchParams.get('ref') || searchParams.get('reference') || '';
+  const urlToken = searchParams.get('token') || '';
   const isSimulated = searchParams.get('simulated') === 'true';
+
+  const [reference, setReference] = useState<string>(urlRef || localStorage.getItem('digitalpay_last_order_ref') || '');
+  const [token, setToken] = useState<string>(urlToken || localStorage.getItem('digitalpay_last_order_token') || '');
+  const [manualQuery, setManualQuery] = useState('');
 
   const [order, setOrder] = useState<Order | null>(null);
   const [deliverables, setDeliverables] = useState<ProductDeliverable[]>([]);
@@ -38,16 +43,17 @@ export const PaymentReturnPage: React.FC = () => {
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [pollingCount, setPollingCount] = useState(0);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Consulta inicial e polling para detectar webhook em tempo real
-  const checkStatus = async () => {
-    if (!reference) {
+  const checkStatus = async (refToCheck = reference, tokenToCheck = token) => {
+    if (!refToCheck) {
       setStatus('not_found');
       return;
     }
 
     try {
-      const result = await fetchOrderDetails(reference, token);
+      const result = await fetchOrderDetails(refToCheck, tokenToCheck);
 
       if (!result.success || !result.order) {
         setStatus('not_found');
@@ -86,7 +92,11 @@ export const PaymentReturnPage: React.FC = () => {
   };
 
   useEffect(() => {
-    checkStatus();
+    if (reference) {
+      checkStatus(reference, token);
+    } else {
+      setStatus('not_found');
+    }
   }, [reference, token]);
 
   // Polling automático a cada 4 segundos se estiver pendente
@@ -96,12 +106,12 @@ export const PaymentReturnPage: React.FC = () => {
     if (status === 'pending') {
       timer = setTimeout(() => {
         setPollingCount(prev => prev + 1);
-        checkStatus();
+        checkStatus(reference, token);
       }, 4000);
     }
 
     return () => clearTimeout(timer);
-  }, [status, pollingCount]);
+  }, [status, pollingCount, reference, token]);
 
   const handleCopyCode = (id: string, code: string) => {
     navigator.clipboard.writeText(code);
@@ -109,13 +119,31 @@ export const PaymentReturnPage: React.FC = () => {
     setTimeout(() => setCopiedCodeId(null), 2000);
   };
 
+  // Liberação imediata ao concluir pagamento no link do PaySuite
+  const handleConfirmPaymentReturn = async () => {
+    if (!reference) return;
+    setIsConfirming(true);
+    await confirmOrderReturn(reference);
+    await checkStatus(reference, token);
+    setIsConfirming(false);
+  };
+
   // Simulação de confirmação do PaySuite em ambiente de teste
   const handleSimulatePaymentConfirmation = async () => {
     if (!reference) return;
     setIsSimulating(true);
     await simulatePaySuiteWebhook(reference, 'payment.success');
-    await checkStatus();
+    await checkStatus(reference, token);
     setIsSimulating(false);
+  };
+
+  const handleManualLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = manualQuery.trim();
+    if (!clean) return;
+    setStatus('loading');
+    setReference(clean);
+    checkStatus(clean, '');
   };
 
   return (
@@ -363,6 +391,40 @@ export const PaymentReturnPage: React.FC = () => {
               <span>Esta tela atualizará automaticamente assim que aprovado</span>
             </div>
 
+            {/* Ação Imediata: Concluiu o pagamento no link do PaySuite */}
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleConfirmPaymentReturn}
+                disabled={isConfirming}
+                className="w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isConfirming ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Liberando seus entregáveis...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>Já Concluí o Pagamento no PaySuite — Liberar Meu Produto</span>
+                  </>
+                )}
+              </button>
+
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  `Olá! Acabei de realizar o pagamento do produto ${order?.product_name || 'Digital'} via PaySuite no valor de ${formatPrice(order?.amount || 0, order?.currency)}. Minha referência é ${reference}. Segue o comprovativo para liberação.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2 transition-colors"
+              >
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                <span>Enviar Comprovativo no WhatsApp (Opcional)</span>
+              </a>
+            </div>
+
             {/* Simulação segura para testes em desenvolvimento ou modo de teste */}
             {(isSimulated || import.meta.env.DEV) && (
               <div className="pt-3 border-t border-slate-800">
@@ -424,17 +486,41 @@ export const PaymentReturnPage: React.FC = () => {
 
             <div>
               <h3 className="text-xl font-black text-white">
-                Pagamento Não Identificado
+                Acesse Seus Entregáveis
               </h3>
               <p className="text-xs text-slate-400 mt-2">
-                Não encontramos uma encomenda com esta referência ou os dados informados são inválidos.
+                Concluiu o pagamento via PaySuite ou quer consultar sua encomenda? Insira sua referência ou acesse por e-mail.
               </p>
             </div>
+
+            {/* Busca Rápida por Referência */}
+            <form onSubmit={handleManualLookup} className="space-y-2 text-left">
+              <label className="text-[11px] font-bold text-slate-300 block">
+                Referência do Pedido (ex: DP-202611...):
+              </label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  required
+                  value={manualQuery}
+                  onChange={e => setManualQuery(e.target.value)}
+                  placeholder="DP-202611..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all cursor-pointer"
+              >
+                Localizar Pedido
+              </button>
+            </form>
 
             <div className="pt-2 flex flex-col gap-2">
               <Link
                 to="/minhas-compras"
-                className="w-full py-3 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white transition-all text-center"
+                className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white transition-all text-center"
               >
                 Consultar Minhas Compras por E-mail
               </Link>

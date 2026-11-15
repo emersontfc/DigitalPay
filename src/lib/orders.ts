@@ -11,6 +11,7 @@ export async function createCheckoutOrder(params: {
   productName: string;
   amount: number;
   currency?: string;
+  paymentLink?: string;
   customer: {
     name: string;
     email: string;
@@ -34,7 +35,12 @@ export async function createCheckoutOrder(params: {
     });
 
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      if (data.reference) {
+        localStorage.setItem('digitalpay_last_order_ref', data.reference);
+        localStorage.setItem('digitalpay_last_order_token', data.accessToken || '');
+      }
+      return data;
     }
   } catch (e) {
     console.warn('Backend API não respondeu, usando fallback do Supabase/Local:', e);
@@ -43,7 +49,12 @@ export async function createCheckoutOrder(params: {
   // Fallback seguro caso o backend ainda esteja inicializando
   const ref = `DP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
   const token = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-  const checkoutUrl = `/pagamento/retorno?ref=${ref}&token=${token}&simulated=true`;
+  const checkoutUrl = params.paymentLink && params.paymentLink.startsWith('http')
+    ? params.paymentLink
+    : `/pagamento/retorno?ref=${ref}&token=${token}&simulated=true`;
+
+  localStorage.setItem('digitalpay_last_order_ref', ref);
+  localStorage.setItem('digitalpay_last_order_token', token);
 
   const fallbackOrder: Order = {
     id: crypto.randomUUID(),
@@ -83,9 +94,37 @@ export async function createCheckoutOrder(params: {
     reference: ref,
     accessToken: token,
     checkoutUrl,
-    mode: 'simulation',
+    mode: params.paymentLink ? 'direct_link' : 'simulation',
     order: fallbackOrder
   };
+}
+
+/**
+ * Confirmação de retorno após pagamento concluído no link do PaySuite
+ */
+export async function confirmOrderReturn(reference: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/orders/${reference}/confirm-return`, {
+      method: 'POST'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.status === 'paid';
+    }
+  } catch {}
+
+  // Fallback local
+  const localOrders: Order[] = JSON.parse(localStorage.getItem('digitalpay_orders') || '[]');
+  const idx = localOrders.findIndex(o => o.reference === reference);
+  if (idx >= 0) {
+    localOrders[idx].status = 'paid';
+    localOrders[idx].delivery_status = 'delivered';
+    localOrders[idx].paid_at = new Date().toISOString();
+    localOrders[idx].delivered_at = new Date().toISOString();
+    localStorage.setItem('digitalpay_orders', JSON.stringify(localOrders));
+    return true;
+  }
+  return false;
 }
 
 /**

@@ -66,7 +66,8 @@ app.post('/api/checkout/create', async (req, res) => {
       amount,
       currency = 'MZN',
       customer,
-      deliveryMode = 'automatic'
+      deliveryMode = 'automatic',
+      paymentLink
     } = req.body;
 
     if (!productId || !amount || !customer?.name || !customer?.email) {
@@ -88,29 +89,46 @@ app.post('/api/checkout/create', async (req, res) => {
     const returnUrl = `${appDomain}/pagamento/retorno?ref=${reference}&token=${accessToken}`;
     const webhookUrl = `${appDomain}/api/webhooks/paysuite`;
 
-    // 1. Inicia pagamento no PaySuite (ou modo simulação seguro se chaves pendentes)
-    let paymentResult;
-    try {
-      paymentResult = await createPaySuitePayment({
-        amount: Number(amount),
-        currency: currency || 'MZN',
-        reference,
-        description: `${productName || 'Produto Digital'} - ${customer.name}`,
-        returnUrl,
-        webhookUrl,
-        customer
-      });
-    } catch (err) {
-      console.error('Falha na chamada PaySuite:', err);
-      return res.status(502).json({
-        success: false,
-        message: 'Erro ao conectar ao gateway PaySuite: ' + err.message
-      });
-    }
+    // 1. Definição do Checkout URL:
+    // Se o produto tiver um link de pagamento direto cadastrado (PaySuite manual), utiliza-o diretamente!
+    let checkoutUrl = '';
+    let gatewayPaymentId = null;
+    let paymentMode = 'direct_link';
 
-    const payData = paymentResult.data || {};
-    const checkoutUrl = payData.checkout_url || `${returnUrl}&simulated=true`;
-    const gatewayPaymentId = payData.id || payData.payment_id || null;
+    const hasDirectPaymentLink = paymentLink && typeof paymentLink === 'string' && paymentLink.startsWith('http');
+
+    if (hasDirectPaymentLink) {
+      checkoutUrl = paymentLink.trim();
+      paymentMode = 'direct_link';
+      console.log(`🔗 Usando link de pagamento direto cadastrado para o pedido ${reference}: ${checkoutUrl}`);
+    } else if (PAYSUITE_CONFIG.apiKey) {
+      // Se houver chave API do PaySuite configurada, cria pagamento via API oficial
+      try {
+        const paymentResult = await createPaySuitePayment({
+          amount: Number(amount),
+          currency: currency || 'MZN',
+          reference,
+          description: `${productName || 'Produto Digital'} - ${customer.name}`,
+          returnUrl,
+          webhookUrl,
+          customer
+        });
+        const payData = paymentResult.data || {};
+        checkoutUrl = payData.checkout_url || `${returnUrl}&simulated=true`;
+        gatewayPaymentId = payData.id || payData.payment_id || null;
+        paymentMode = paymentResult.mode;
+      } catch (err) {
+        console.error('Falha na chamada PaySuite:', err);
+        return res.status(502).json({
+          success: false,
+          message: 'Erro ao conectar ao gateway PaySuite: ' + err.message
+        });
+      }
+    } else {
+      // Modo simulação ou retorno direto se sem link e sem chave API
+      checkoutUrl = `${returnUrl}&simulated=true`;
+      paymentMode = 'simulation';
+    }
 
     const orderRecord = {
       id: crypto.randomUUID(),
@@ -133,8 +151,8 @@ app.post('/api/checkout/create', async (req, res) => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       metadata: {
-        mode: paymentResult.mode,
-        paySuiteData: payData
+        mode: paymentMode,
+        paymentLink: hasDirectPaymentLink ? paymentLink : null
       }
     };
 
@@ -156,7 +174,7 @@ app.post('/api/checkout/create', async (req, res) => {
       reference,
       accessToken,
       checkoutUrl,
-      mode: paymentResult.mode,
+      mode: paymentMode,
       order: {
         id: orderRecord.id,
         reference,
@@ -374,6 +392,60 @@ app.post('/api/webhooks/paysuite', async (req, res) => {
     reference,
     orderStatus: order.status,
     deliveryStatus: order.delivery_status
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4.1. CONFIRMAÇÃO DE RETORNO DO LINK DE PAGAMENTO (SEM NECESSIDADE DE HOOKS)
+// ---------------------------------------------------------------------------
+app.post('/api/orders/:reference/confirm-return', async (req, res) => {
+  const { reference } = req.params;
+
+  let order = null;
+  try {
+    const { data } = await supabaseAdmin.from('orders').select('*').eq('reference', reference).maybeSingle();
+    if (data) order = data;
+  } catch {}
+
+  if (!order) {
+    order = memoryStore.orders.get(reference);
+  }
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Pedido não encontrado' });
+  }
+
+  // Se o produto está configurado para entrega automática ao retornar do link de pagamento
+  if (order.delivery_mode === 'automatic' || req.query.force === 'true') {
+    const now = new Date().toISOString();
+    const updateFields = {
+      status: 'paid',
+      delivery_status: 'delivered',
+      paid_at: order.paid_at || now,
+      delivered_at: order.delivered_at || now,
+      updated_at: now
+    };
+
+    try {
+      await supabaseAdmin.from('orders').update(updateFields).eq('id', order.id);
+    } catch {}
+
+    Object.assign(order, updateFields);
+    memoryStore.orders.set(reference, order);
+
+    return res.json({
+      success: true,
+      status: 'paid',
+      deliveryStatus: 'delivered',
+      message: 'Pagamento confirmado e entregáveis liberados com sucesso!'
+    });
+  }
+
+  return res.json({
+    success: true,
+    status: order.status,
+    deliveryStatus: order.delivery_status,
+    message: 'Pedido registrado e aguardando aprovação do administrador.'
   });
 });
 

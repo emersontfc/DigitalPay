@@ -70,6 +70,7 @@ export const PaySuiteCheckoutModal: React.FC<PaySuiteCheckoutModalProps> = ({
         productName: product.name,
         amount: finalPrice,
         currency,
+        paymentLink: product.cta_url,
         customer: {
           name: cleanName,
           email: cleanEmail,

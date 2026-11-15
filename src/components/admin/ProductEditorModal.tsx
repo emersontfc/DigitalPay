@@ -920,21 +920,37 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                   <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
                     <h4 className="font-bold text-white text-sm flex items-center gap-2">
                       <Link className="w-4 h-4 text-emerald-400" />
-                      Configuração do Botão CTA (Chamada Para Ação)
+                      Configuração do Link de Pagamento (PaySuite, Kiwify ou Checkout Direto)
                     </h4>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Link de Destino / Checkout de Pagamento (URL da Kiwify ou Gateway) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                          Link de Pagamento PaySuite ou Checkout *
+                        </label>
+                        <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          Funciona com ou sem API / Webhook
+                        </span>
+                      </div>
                       <input
                         type="url"
                         required
-                        placeholder="https://pay.kiwify.com.br/seucodigo"
+                        placeholder="https://paysuite.tech/pay/... ou https://pay.kiwify.com.br/..."
                         value={ctaUrl}
                         onChange={(e) => setCtaUrl(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-emerald-500/40 text-emerald-300 font-mono text-sm focus:outline-none"
                       />
+
+                      <div className="mt-2 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                        <p className="font-bold text-slate-200">
+                          💡 Como usar Link de Pagamento PaySuite sem API Keys / Webhooks:
+                        </p>
+                        <ul className="list-disc pl-4 space-y-0.5 text-slate-400">
+                          <li>Crie o link de pagamento no seu painel do PaySuite (ou Kiwify) e cole a URL no campo acima.</li>
+                          <li>No painel do PaySuite, configure a <strong>URL de Retorno</strong> para: <code className="text-emerald-400 font-mono">https://digitallpay.store/pagamento/retorno</code></li>
+                          <li>O comprador preenche nome e e-mail antes de pagar, é direcionado ao PaySuite e, ao retornar, os entregáveis são liberados automaticamente!</li>
+                        </ul>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
