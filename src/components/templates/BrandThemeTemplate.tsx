@@ -6,43 +6,45 @@ import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
 import { FloatingWhatsAppButton } from '../common/FloatingWhatsAppButton';
+import { BrandLogo } from '../common/BrandLogo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { SocialProofSection } from '../common/SocialProofSection';
+import { GuaranteeSection } from '../common/GuaranteeSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
 import {
   CheckCircle2,
-  Shield,
-  Star,
   ChevronDown,
-  Sparkles,
-  Lock,
   Layers,
   HelpCircle,
   Clock,
-  ArrowRight,
   Flame,
   Award,
-  Zap,
-  Check,
   Cpu,
   Gem,
   HeartPulse,
   TrendingUp,
   Video,
-  Bot
+  Bot,
+  BookOpen,
+  Sparkles,
+  Crown
 } from 'lucide-react';
 
 interface BrandThemeTemplateProps {
   product: Product;
 }
 
-// Configurações visuais e cromáticas de cada tema de marca
+// Configurações visuais e cromáticas de cada tema de marca e E-book
 interface ThemeConfig {
   bg: string;
+  isLight?: boolean;
   selection: string;
   topBarVariant: string;
   timerVariant: string;
   checkoutVariant: string;
+  guaranteeDefaultColor: 'emerald' | 'gold' | 'indigo' | 'blue' | 'red' | 'purple' | 'rose' | 'orange' | 'cyan' | 'noir';
   glow1: string;
   glow2: string;
   badgeBg: string;
@@ -72,6 +74,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'cyan',
     timerVariant: 'cyan',
     checkoutVariant: 'cyan',
+    guaranteeDefaultColor: 'cyan',
     glow1: 'bg-cyan-500/10',
     glow2: 'bg-sky-500/10',
     badgeBg: 'bg-cyan-500/10',
@@ -99,6 +102,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'crimson',
     timerVariant: 'crimson',
     checkoutVariant: 'crimson',
+    guaranteeDefaultColor: 'red',
     glow1: 'bg-red-600/15',
     glow2: 'bg-rose-600/10',
     badgeBg: 'bg-red-600/15',
@@ -126,6 +130,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'rose',
     timerVariant: 'rose',
     checkoutVariant: 'rose',
+    guaranteeDefaultColor: 'rose',
     glow1: 'bg-rose-500/15',
     glow2: 'bg-pink-500/10',
     badgeBg: 'bg-rose-500/15',
@@ -153,6 +158,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'blue',
     timerVariant: 'blue',
     checkoutVariant: 'blue',
+    guaranteeDefaultColor: 'blue',
     glow1: 'bg-blue-600/15',
     glow2: 'bg-indigo-600/10',
     badgeBg: 'bg-blue-600/15',
@@ -180,6 +186,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'sunset',
     timerVariant: 'sunset',
     checkoutVariant: 'sunset',
+    guaranteeDefaultColor: 'orange',
     glow1: 'bg-orange-500/15',
     glow2: 'bg-amber-500/10',
     badgeBg: 'bg-orange-500/15',
@@ -207,6 +214,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'violet',
     timerVariant: 'violet',
     checkoutVariant: 'violet',
+    guaranteeDefaultColor: 'purple',
     glow1: 'bg-purple-600/15',
     glow2: 'bg-violet-600/10',
     badgeBg: 'bg-purple-600/15',
@@ -234,6 +242,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'emerald',
     timerVariant: 'emerald',
     checkoutVariant: 'emerald',
+    guaranteeDefaultColor: 'emerald',
     glow1: 'bg-emerald-600/15',
     glow2: 'bg-teal-600/10',
     badgeBg: 'bg-emerald-600/15',
@@ -261,6 +270,7 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     topBarVariant: 'noir',
     timerVariant: 'noir',
     checkoutVariant: 'noir',
+    guaranteeDefaultColor: 'noir',
     glow1: 'bg-zinc-700/10',
     glow2: 'bg-zinc-500/10',
     badgeBg: 'bg-zinc-900',
@@ -281,6 +291,177 @@ const THEME_CONFIGS: Record<string, ThemeConfig> = {
     priceColor: 'text-white',
     faqActiveBorder: 'border-zinc-500',
     faqActiveBg: 'bg-zinc-900/40',
+  },
+  // === 6 TEMPLATES DEDICADOS PARA E-BOOKS ===
+  'ebook-classic-ivory': {
+    bg: 'bg-[#faf6ef]',
+    isLight: true,
+    selection: 'selection:bg-amber-600 selection:text-white',
+    topBarVariant: 'ivory',
+    timerVariant: 'gold',
+    checkoutVariant: 'gold',
+    guaranteeDefaultColor: 'gold',
+    glow1: 'bg-amber-400/15',
+    glow2: 'bg-orange-300/15',
+    badgeBg: 'bg-amber-900/10',
+    badgeBorder: 'border-amber-700/30',
+    badgeText: 'text-amber-900',
+    badgeIcon: <BookOpen className="w-3.5 h-3.5" />,
+    headlineGradient: 'from-stone-900 via-amber-950 to-amber-800',
+    subheadlineColor: 'text-stone-600',
+    videoGlow: 'amber',
+    cardBg: 'bg-white',
+    cardBorder: 'border-amber-900/15',
+    cardHoverBorder: 'hover:border-amber-600/50',
+    accentText: 'text-amber-800',
+    accentBorder: 'border-amber-700/30',
+    accentBg: 'bg-amber-100',
+    starColor: 'fill-amber-500 text-amber-500',
+    guaranteeBadge: 'bg-amber-100 text-amber-900 border-amber-500/40',
+    priceColor: 'text-amber-800',
+    faqActiveBorder: 'border-amber-600/50',
+    faqActiveBg: 'bg-amber-50',
+  },
+  'ebook-ocean-clean': {
+    bg: 'bg-[#f4f8fc]',
+    isLight: true,
+    selection: 'selection:bg-sky-600 selection:text-white',
+    topBarVariant: 'ocean-light',
+    timerVariant: 'blue',
+    checkoutVariant: 'blue',
+    guaranteeDefaultColor: 'blue',
+    glow1: 'bg-sky-400/15',
+    glow2: 'bg-blue-400/10',
+    badgeBg: 'bg-sky-100',
+    badgeBorder: 'border-sky-300',
+    badgeText: 'text-sky-800',
+    badgeIcon: <BookOpen className="w-3.5 h-3.5" />,
+    headlineGradient: 'from-slate-900 via-blue-950 to-sky-700',
+    subheadlineColor: 'text-slate-600',
+    videoGlow: 'indigo',
+    cardBg: 'bg-white',
+    cardBorder: 'border-slate-200',
+    cardHoverBorder: 'hover:border-sky-400',
+    accentText: 'text-sky-700',
+    accentBorder: 'border-sky-300',
+    accentBg: 'bg-sky-100',
+    starColor: 'fill-amber-400 text-amber-400',
+    guaranteeBadge: 'bg-sky-50 text-sky-800 border-sky-300',
+    priceColor: 'text-sky-700',
+    faqActiveBorder: 'border-sky-400',
+    faqActiveBg: 'bg-sky-50/70',
+  },
+  'ebook-emerald-reader': {
+    bg: 'bg-[#04100b]',
+    selection: 'selection:bg-emerald-500 selection:text-slate-950',
+    topBarVariant: 'emerald',
+    timerVariant: 'emerald',
+    checkoutVariant: 'neon',
+    guaranteeDefaultColor: 'emerald',
+    glow1: 'bg-emerald-500/15',
+    glow2: 'bg-teal-500/10',
+    badgeBg: 'bg-emerald-500/15',
+    badgeBorder: 'border-emerald-400/35',
+    badgeText: 'text-emerald-300',
+    badgeIcon: <BookOpen className="w-3.5 h-3.5" />,
+    headlineGradient: 'from-white via-emerald-100 to-emerald-400',
+    subheadlineColor: 'text-slate-300',
+    videoGlow: 'emerald',
+    cardBg: 'bg-slate-900/75',
+    cardBorder: 'border-emerald-900/60',
+    cardHoverBorder: 'hover:border-emerald-400/50',
+    accentText: 'text-emerald-400',
+    accentBorder: 'border-emerald-500/35',
+    accentBg: 'bg-emerald-500/15',
+    starColor: 'fill-amber-400 text-amber-400',
+    guaranteeBadge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/35',
+    priceColor: 'text-emerald-400',
+    faqActiveBorder: 'border-emerald-500/40',
+    faqActiveBg: 'bg-emerald-950/30',
+  },
+  'ebook-crimson-bestseller': {
+    bg: 'bg-[#0c0506]',
+    selection: 'selection:bg-red-600 selection:text-white',
+    topBarVariant: 'crimson',
+    timerVariant: 'crimson',
+    checkoutVariant: 'crimson',
+    guaranteeDefaultColor: 'red',
+    glow1: 'bg-red-600/15',
+    glow2: 'bg-amber-500/10',
+    badgeBg: 'bg-red-600/15',
+    badgeBorder: 'border-red-500/40',
+    badgeText: 'text-red-300',
+    badgeIcon: <Flame className="w-3.5 h-3.5 fill-red-400 text-red-400" />,
+    headlineGradient: 'from-white via-amber-100 to-red-400',
+    subheadlineColor: 'text-neutral-300',
+    videoGlow: 'red',
+    cardBg: 'bg-neutral-900/80',
+    cardBorder: 'border-red-950/80',
+    cardHoverBorder: 'hover:border-red-500/50',
+    accentText: 'text-red-400',
+    accentBorder: 'border-red-500/35',
+    accentBg: 'bg-red-500/15',
+    starColor: 'fill-amber-400 text-amber-400',
+    guaranteeBadge: 'bg-red-500/10 text-red-400 border-red-500/35',
+    priceColor: 'text-amber-400',
+    faqActiveBorder: 'border-red-500/40',
+    faqActiveBg: 'bg-red-950/25',
+  },
+  'ebook-royal-plum': {
+    bg: 'bg-[#0d0614]',
+    selection: 'selection:bg-purple-500 selection:text-white',
+    topBarVariant: 'violet',
+    timerVariant: 'violet',
+    checkoutVariant: 'violet',
+    guaranteeDefaultColor: 'purple',
+    glow1: 'bg-fuchsia-600/15',
+    glow2: 'bg-purple-600/15',
+    badgeBg: 'bg-fuchsia-500/15',
+    badgeBorder: 'border-fuchsia-400/35',
+    badgeText: 'text-fuchsia-300',
+    badgeIcon: <Sparkles className="w-3.5 h-3.5" />,
+    headlineGradient: 'from-white via-fuchsia-100 to-purple-300',
+    subheadlineColor: 'text-slate-300',
+    videoGlow: 'indigo',
+    cardBg: 'bg-purple-950/35',
+    cardBorder: 'border-purple-800/40',
+    cardHoverBorder: 'hover:border-fuchsia-400/40',
+    accentText: 'text-fuchsia-300',
+    accentBorder: 'border-fuchsia-400/35',
+    accentBg: 'bg-fuchsia-500/15',
+    starColor: 'fill-amber-300 text-amber-300',
+    guaranteeBadge: 'bg-purple-500/15 text-fuchsia-300 border-purple-500/35',
+    priceColor: 'text-fuchsia-300',
+    faqActiveBorder: 'border-fuchsia-400/40',
+    faqActiveBg: 'bg-purple-950/40',
+  },
+  'ebook-midnight-gold': {
+    bg: 'bg-[#09090b]',
+    selection: 'selection:bg-amber-400 selection:text-black',
+    topBarVariant: 'gold',
+    timerVariant: 'gold',
+    checkoutVariant: 'gold',
+    guaranteeDefaultColor: 'gold',
+    glow1: 'bg-amber-500/15',
+    glow2: 'bg-yellow-500/10',
+    badgeBg: 'bg-amber-500/15',
+    badgeBorder: 'border-amber-400/40',
+    badgeText: 'text-amber-300',
+    badgeIcon: <Crown className="w-3.5 h-3.5" />,
+    headlineGradient: 'from-white via-amber-100 to-amber-400',
+    subheadlineColor: 'text-zinc-300',
+    videoGlow: 'amber',
+    cardBg: 'bg-zinc-900/80',
+    cardBorder: 'border-amber-500/20',
+    cardHoverBorder: 'hover:border-amber-400/50',
+    accentText: 'text-amber-400',
+    accentBorder: 'border-amber-500/35',
+    accentBg: 'bg-amber-500/15',
+    starColor: 'fill-amber-400 text-amber-400',
+    guaranteeBadge: 'bg-amber-500/10 text-amber-300 border-amber-500/35',
+    priceColor: 'text-amber-400',
+    faqActiveBorder: 'border-amber-400/40',
+    faqActiveBg: 'bg-amber-950/20',
   },
 };
 
@@ -303,6 +484,8 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
   };
 
   const theme: ThemeConfig = THEME_CONFIGS[product.template] || THEME_CONFIGS['titanium-tech'];
+  const isLight = Boolean(theme.isLight);
+  const ds = product.design_settings || {};
 
   const discountAmount = Math.max(0, product.original_price - product.promo_price);
   const discountPercent = product.original_price > 0
@@ -312,24 +495,31 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
 
+  const headingText = isLight ? 'text-slate-900' : 'text-white';
+  const bodyText = isLight ? 'text-slate-600' : 'text-slate-300';
+  const mutedText = isLight ? 'text-slate-500' : 'text-slate-400';
+  const sectionBorder = isLight ? 'border-slate-200/80' : 'border-slate-800/80';
+  const sectionBgAlt = isLight ? 'bg-black/[0.03]' : 'bg-black/40';
+
   return (
-    <div className={`min-h-screen ${theme.bg} text-slate-100 ${theme.selection} font-sans`}>
-      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+    <div className={`min-h-screen ${theme.bg} ${isLight ? 'text-slate-900' : 'text-slate-100'} ${theme.selection} font-sans`}>
+      {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
       <SalesPageTopBar variant={theme.topBarVariant} showLanguageSelector={product.multilang_enabled !== false} />
 
-      {/* 2. Barra de Contagem Regressiva Topo */}
+      {/* 2. Barra de Contagem Regressiva Fina Topo */}
       {product.countdown_enabled && (
-        <div className="sticky top-11 z-20">
+        <div className="sticky top-[30px] sm:top-[34px] z-20">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant={theme.timerVariant}
+            customColor={ds.countdown_color}
             label={t.countdown_label}
           />
         </div>
       )}
 
       {/* 3. Hero Section Principal */}
-      <section className="relative pt-12 pb-20 px-4 overflow-hidden">
+      <section className="relative pt-10 sm:pt-12 pb-16 sm:pb-20 px-4 overflow-hidden">
         {/* Glows de ambientação do tema */}
         <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[650px] h-[350px] ${theme.glow1} blur-[140px] rounded-full pointer-events-none`} />
         <div className={`absolute top-1/3 right-10 w-[400px] h-[400px] ${theme.glow2} blur-[130px] rounded-full pointer-events-none`} />
@@ -368,7 +558,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
 
           {/* Botão de Ação Imediato com Pitch Delay Inteligente */}
           {showOffer ? (
-            <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
               <CheckoutButton
                 productId={product.id}
                 ctaText={product.cta_text}
@@ -378,12 +568,17 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
                 promoPrice={product.promo_price}
                 currency={product.currency}
                 variant={theme.checkoutVariant}
-                size="xl"
+                customColor={ds.cta_color}
+                customTextColor={ds.cta_text_color}
+                size={ds.cta_size || 'xl'}
+                thickness={ds.cta_thickness || 'normal'}
+                rounded={ds.cta_rounded || 'xl'}
+                pulse={Boolean(ds.cta_pulse)}
               />
             </div>
           ) : isDelayActive ? (
-            <div className="max-w-md mx-auto p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex items-center justify-center gap-2">
-              <Clock className="w-4 h-4 animate-spin text-slate-400" />
+            <div className={`max-w-md mx-auto p-4 rounded-xl ${isLight ? 'bg-white border-slate-200 text-slate-600' : 'bg-slate-900/50 border-slate-800 text-slate-400'} border text-xs flex items-center justify-center gap-2`}>
+              <Clock className="w-4 h-4 animate-spin" />
               <span>{t.vsl_delay_waiting}</span>
             </div>
           ) : null}
@@ -392,13 +587,13 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
 
       {/* 4. Grade de Diferenciais & O Que Está Incluso */}
       {product.features && product.features.length > 0 && (
-        <section className="py-16 px-4 border-t border-b border-slate-800/80 bg-black/40 relative">
+        <section className={`py-16 px-4 border-y ${sectionBorder} ${sectionBgAlt} relative`}>
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className={`text-xs font-black uppercase tracking-widest ${theme.accentText} block mb-2`}>
                 {t.features_badge}
               </span>
-              <h2 className="text-2xl sm:text-4xl font-black text-white">
+              <h2 className={`text-2xl sm:text-4xl font-black ${headingText}`}>
                 {t.features_title}
               </h2>
             </div>
@@ -407,13 +602,13 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
               {product.features.map((feature, idx) => (
                 <div
                   key={idx}
-                  className={`p-5 rounded-2xl ${theme.cardBg} border ${theme.cardBorder} ${theme.cardHoverBorder} transition-all duration-300 flex items-start gap-4 group`}
+                  className={`p-5 rounded-2xl ${theme.cardBg} border ${theme.cardBorder} ${theme.cardHoverBorder} transition-all duration-300 flex items-start gap-4 group shadow-sm`}
                 >
                   <div className={`p-2.5 rounded-xl ${theme.accentBg} ${theme.accentText} shrink-0 group-hover:scale-110 transition-transform`}>
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-base leading-snug group-hover:text-white transition-colors">
+                    <h4 className={`font-bold ${headingText} text-base leading-snug`}>
                       {feature}
                     </h4>
                   </div>
@@ -432,7 +627,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
               <Layers className="w-3.5 h-3.5" />
               <span>{t.modules_badge}</span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+            <h2 className={`text-2xl sm:text-4xl font-black ${headingText} tracking-tight`}>
               {t.modules_title}
             </h2>
           </div>
@@ -446,7 +641,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
                   className={`rounded-2xl border transition-all overflow-hidden ${
                     isOpen
                       ? `${theme.cardBg} ${theme.accentBorder} shadow-lg`
-                      : `${theme.cardBg} ${theme.cardBorder} hover:border-slate-700`
+                      : `${theme.cardBg} ${theme.cardBorder}`
                   }`}
                 >
                   <button
@@ -458,17 +653,17 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-white text-base truncate">{mod.title}</h4>
+                        <h4 className={`font-bold ${headingText} text-base truncate`}>{mod.title}</h4>
                         {mod.lessonsCount && (
-                          <span className="text-xs text-slate-400 block mt-0.5">{mod.lessonsCount}</span>
+                          <span className={`text-xs ${mutedText} block mt-0.5`}>{mod.lessonsCount}</span>
                         )}
                       </div>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 ${mutedText} transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isOpen && mod.description && (
-                    <div className="px-5 pb-5 pt-1 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60">
+                    <div className={`px-5 pb-5 pt-2 text-sm ${bodyText} leading-relaxed border-t ${sectionBorder}`}>
                       {mod.description}
                     </div>
                   )}
@@ -479,54 +674,23 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
         </section>
       )}
 
-      {/* 6. Prova Social & Depoimentos de Clientes */}
-      {product.testimonials && product.testimonials.length > 0 && (
-        <section className="py-20 px-4 bg-black/50 border-t border-b border-slate-800/80">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className={`text-xs font-black uppercase tracking-widest ${theme.accentText} block mb-2`}>
-                {t.testimonials_badge}
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-black text-white">
-                {t.testimonials_title}
-              </h2>
-            </div>
+      {/* 6. Prova Social & Depoimentos (Carrossel de Prints, Galeria, WhatsApp, Cards, Misto) */}
+      <SocialProofSection
+        product={product}
+        badgeText={t.testimonials_badge}
+        titleText={t.testimonials_title}
+        accentTextClass={theme.accentText}
+        accentBgClass={theme.accentBg}
+        accentBorderClass={theme.accentBorder}
+        cardBgClass={theme.cardBg}
+        cardBorderClass={theme.cardBorder}
+        starColorClass={theme.starColor}
+        sectionBgClass={`${sectionBgAlt} border-y ${sectionBorder}`}
+        lightMode={isLight}
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {product.testimonials.map((test) => (
-                <div
-                  key={test.id}
-                  className={`p-6 rounded-2xl ${theme.cardBg} border ${theme.cardBorder} flex flex-col justify-between space-y-4`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: test.rating || 5 }).map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${theme.starColor}`} />
-                      ))}
-                    </div>
-                    <p className="text-sm text-slate-200 italic leading-relaxed">
-                      "{test.content}"
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-3 border-t border-slate-800/60">
-                    <div className={`w-10 h-10 rounded-full ${theme.accentBg} ${theme.accentText} font-bold flex items-center justify-center text-sm border ${theme.accentBorder}`}>
-                      {test.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-white text-sm">{test.name}</h5>
-                      <span className="text-xs text-slate-400">{test.role}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 7. Caixa de Preço & Oferta Principal */}
-      <section className="py-20 px-4 relative overflow-hidden">
+      {/* 7. Caixa de Preço & Oferta Principal com Seletor de Moeda Integrado */}
+      <section className="py-20 px-4 relative overflow-hidden" id="checkout-section">
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] ${theme.glow1} blur-[150px] rounded-full pointer-events-none`} />
 
         <div className="max-w-xl mx-auto relative z-10">
@@ -540,21 +704,27 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
             )}
 
             <div>
-              <h3 className="text-2xl font-black text-white">{product.name}</h3>
-              <p className="text-xs text-slate-400 mt-1">{t.pricing_subtext}</p>
+              <h3 className={`text-2xl font-black ${headingText}`}>{product.name}</h3>
+              <p className={`text-xs ${mutedText} mt-1`}>{t.pricing_subtext}</p>
             </div>
 
-            {/* Bloco de Preço */}
-            <div className="p-5 rounded-2xl bg-black/60 border border-slate-800/80 space-y-1">
+            {/* Bloco de Preço + Seletor de Moeda Direto no Campo de CTA */}
+            <div className={`p-5 rounded-2xl ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-black/60 border-slate-800/80'} border space-y-2`}>
+              {product.multilang_enabled !== false && (
+                <div className="pb-1">
+                  <LanguageSelector variant="currency-pill" lightMode={isLight} />
+                </div>
+              )}
+
               {product.original_price > product.promo_price && (
-                <div className="text-xs sm:text-sm text-slate-500 line-through">
+                <div className={`text-xs sm:text-sm ${mutedText} line-through`}>
                   {t.pricing_was.replace('{original}', formatPrice(product.original_price, product.currency))}
                 </div>
               )}
               <div className={`text-4xl sm:text-5xl font-black ${theme.priceColor}`}>
                 {formatPrice(product.promo_price, product.currency)}
               </div>
-              <div className="text-xs sm:text-sm text-slate-300 font-semibold">
+              <div className={`text-xs sm:text-sm ${bodyText} font-semibold`}>
                 {product.installments_text}
               </div>
             </div>
@@ -569,41 +739,33 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
               promoPrice={product.promo_price}
               currency={product.currency}
               variant={theme.checkoutVariant}
-              size="xl"
+              customColor={ds.cta_color}
+              customTextColor={ds.cta_text_color}
+              size={ds.cta_size || 'xl'}
+              thickness={ds.cta_thickness || 'normal'}
+              rounded={ds.cta_rounded || 'xl'}
+              pulse={Boolean(ds.cta_pulse)}
             />
           </div>
         </div>
       </section>
 
-      {/* 8. Selo de Garantia Incondicional */}
-      {product.guarantee_days > 0 && (
-        <section className="py-12 px-4 max-w-3xl mx-auto">
-          <div className={`p-6 sm:p-8 rounded-2xl ${theme.cardBg} border ${theme.cardBorder} flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left`}>
-            <div className={`w-20 h-20 rounded-2xl ${theme.guaranteeBadge} flex flex-col items-center justify-center shrink-0 border-2`}>
-              <Shield className="w-8 h-8 mb-1" />
-              <span className="text-xs font-black">{product.guarantee_days} {currentLang === 'en' ? 'DAYS' : currentLang === 'es' ? 'DÍAS' : 'DIAS'}</span>
-            </div>
-            <div className="space-y-1.5">
-              <h4 className="text-lg font-bold text-white">
-                {t.guarantee_title.replace('{days}', String(product.guarantee_days))}
-              </h4>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                {t.guarantee_desc.replace('{days}', String(product.guarantee_days))}
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* 8. Selo / Botão de Garantia Ajustável */}
+      <GuaranteeSection
+        product={product}
+        defaultColor={theme.guaranteeDefaultColor}
+        lightMode={isLight}
+      />
 
       {/* 9. Perguntas Frequentes (FAQ) */}
       {product.faqs && product.faqs.length > 0 && (
-        <section className="py-16 px-4 max-w-3xl mx-auto border-t border-slate-800/80">
+        <section className={`py-16 px-4 max-w-3xl mx-auto border-t ${sectionBorder}`}>
           <div className="text-center max-w-xl mx-auto mb-10">
             <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${theme.accentBg} ${theme.accentText} text-xs font-bold uppercase tracking-wider mb-2`}>
               <HelpCircle className="w-3.5 h-3.5" />
               <span>{t.faq_badge}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">{t.faq_title}</h2>
+            <h2 className={`text-2xl sm:text-3xl font-black ${headingText}`}>{t.faq_title}</h2>
           </div>
 
           <div className="space-y-3">
@@ -615,18 +777,18 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
                   className={`rounded-2xl border transition-all overflow-hidden ${
                     isOpen
                       ? `${theme.faqActiveBg} ${theme.faqActiveBorder}`
-                      : `${theme.cardBg} ${theme.cardBorder} hover:border-slate-700`
+                      : `${theme.cardBg} ${theme.cardBorder}`
                   }`}
                 >
                   <button
                     onClick={() => toggleFaq(faq.id)}
                     className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer"
                   >
-                    <span className="font-bold text-white text-sm sm:text-base">{faq.question}</span>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                    <span className={`font-bold ${headingText} text-sm sm:text-base`}>{faq.question}</span>
+                    <ChevronDown className={`w-4 h-4 ${mutedText} transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/40">
+                    <div className={`px-5 pb-5 pt-2 text-xs sm:text-sm ${bodyText} leading-relaxed border-t ${sectionBorder}`}>
                       {faq.answer}
                     </div>
                   )}
@@ -637,10 +799,17 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
         </section>
       )}
 
-      {/* 10. Rodapé Institucional */}
-      <footer className="py-10 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
+      {/* 10. Rodapé Institucional com Logo Digitall Pay maior lá em baixo */}
+      <footer className={`py-12 px-4 border-t ${sectionBorder} text-center text-xs ${mutedText} space-y-3`}>
+        <div className="flex justify-center pb-1">
+          <BrandLogo
+            size="lg"
+            variant={isLight ? 'light' : 'neon'}
+            showText={true}
+          />
+        </div>
         <p>© {new Date().getFullYear()} {product.name}. {t.footer_rights}</p>
-        <p className="text-[11px] text-slate-600">
+        <p className="text-[11px] opacity-75">
           {t.footer_platform}
         </p>
       </footer>

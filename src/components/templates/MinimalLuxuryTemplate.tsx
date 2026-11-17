@@ -5,6 +5,10 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { BrandLogo } from '../common/BrandLogo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { SocialProofSection } from '../common/SocialProofSection';
+import { GuaranteeSection } from '../common/GuaranteeSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -39,18 +43,20 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
 
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+  const ds = product.design_settings || {};
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 selection:bg-indigo-600 selection:text-white">
-      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
       <SalesPageTopBar variant="luxury" showLanguageSelector={product.multilang_enabled !== false} />
 
-      {/* 2. Timer discreto e executivo */}
+      {/* 2. Timer discreto e fino */}
       {product.countdown_enabled && (
-        <div className="sticky top-11 z-20">
+        <div className="sticky top-[30px] sm:top-[34px] z-20">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="luxury"
+            customColor={ds.countdown_color}
             label={t.countdown_luxury}
           />
         </div>
@@ -97,7 +103,12 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
                 productName={product.name}
                 currency={product.currency}
                 variant="luxury"
-                size="lg"
+                customColor={ds.cta_color}
+                customTextColor={ds.cta_text_color}
+                size={ds.cta_size || 'lg'}
+                thickness={ds.cta_thickness || 'normal'}
+                rounded={ds.cta_rounded || 'xl'}
+                pulse={Boolean(ds.cta_pulse)}
               />
             </div>
           ) : (
@@ -182,69 +193,22 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
-      {/* 5. Depoimentos */}
-      {product.testimonials && product.testimonials.length > 0 && (
-        <section className="py-20 px-4 bg-slate-900/20 border-t border-slate-800/60">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-white">Casos de Sucesso</h2>
-              <p className="text-slate-400 text-sm mt-2">
-                Depoimentos de executivos e profissionais que transformaram seus resultados.
-              </p>
-            </div>
+      {/* 5. Depoimentos / Provas Sociais */}
+      <SocialProofSection
+        product={product}
+        badgeText={t.testimonials_badge}
+        titleText={t.testimonials_title}
+        accentTextClass="text-indigo-400"
+        accentBgClass="bg-indigo-500/20"
+        accentBorderClass="border-indigo-500/40"
+        cardBgClass="bg-slate-900/70"
+        cardBorderClass="border-slate-800"
+        starColorClass="fill-amber-400 text-amber-400"
+        sectionBgClass="bg-slate-900/20 border-t border-slate-800/60"
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {product.testimonials.map((t, idx) => (
-                <div
-                  key={t.id || idx}
-                  className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 flex flex-col justify-between"
-                >
-                  <div className="flex gap-1 text-amber-400 mb-3">
-                    {[...Array(t.rating || 5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-300 text-sm italic mb-6">"{t.content}"</p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-slate-800">
-                    {t.avatarUrl ? (
-                      <img
-                        src={t.avatarUrl}
-                        alt={t.name}
-                        className="w-10 h-10 rounded-full object-cover border border-indigo-500/40"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold">
-                        {t.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="text-sm font-bold text-white">{t.name}</h4>
-                      <p className="text-xs text-slate-400">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 6. Garantia */}
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto p-8 rounded-2xl border border-indigo-500/20 bg-indigo-950/20 flex flex-col sm:flex-row items-center gap-6">
-          <div className="w-16 h-16 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30">
-            <Shield className="w-8 h-8" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white mb-1">
-              Garantia de Satisfação de {product.guarantee_days} Dias
-            </h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Inicie a sua jornada com total tranquilidade. Se dentro do período de {product.guarantee_days} dias você avaliar que o conteúdo não superou suas expectativas, solicitamos o estorno integral do seu aporte.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* 6. Garantia Ajustável */}
+      <GuaranteeSection product={product} defaultColor="indigo" />
 
       {/* 7. Proposta de Valor / Checkout */}
       {!showOffer && isDelayActive && (
@@ -268,7 +232,14 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
             <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">
               Investimento
             </span>
-            <h3 className="text-2xl font-bold text-white mt-1 mb-4">{product.name}</h3>
+            <h3 className="text-2xl font-bold text-white mt-1 mb-3">{product.name}</h3>
+
+            {/* Seletor de Moeda direto no bloco de preço / CTA */}
+            {product.multilang_enabled !== false && (
+              <div className="mb-4">
+                <LanguageSelector variant="currency-pill" />
+              </div>
+            )}
 
             {product.original_price > product.promo_price && (
               <div className="text-slate-500 text-sm line-through mb-1">
@@ -292,7 +263,12 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
               productName={product.name}
               currency={product.currency}
               variant="luxury"
-              size="lg"
+              customColor={ds.cta_color}
+              customTextColor={ds.cta_text_color}
+              size={ds.cta_size || 'lg'}
+              thickness={ds.cta_thickness || 'normal'}
+              rounded={ds.cta_rounded || 'xl'}
+              pulse={Boolean(ds.cta_pulse)}
             />
 
             <div className="flex items-center justify-center gap-4 text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800">
@@ -349,10 +325,12 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
-      {/* Rodapé */}
-      <footer className="py-12 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500">
-        <p className="font-bold text-slate-400">DIGITALL PAY • PLATAFORMA DE VENDAS</p>
-        <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
+      {/* Rodapé com Logo Digitall Pay maior lá em baixo */}
+      <footer className="py-12 px-4 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo size="lg" variant="luxury" showText={true} />
+        </div>
+        <p>© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 
       <StickyCtaBar product={product} variant="luxury" show={showOffer} />

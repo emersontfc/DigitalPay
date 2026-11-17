@@ -5,6 +5,10 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { BrandLogo } from '../common/BrandLogo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { SocialProofSection } from '../common/SocialProofSection';
+import { GuaranteeSection } from '../common/GuaranteeSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -45,18 +49,20 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
 
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+  const ds = product.design_settings || {};
 
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-emerald-500 selection:text-black">
-      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
       <SalesPageTopBar variant="neon" showLanguageSelector={product.multilang_enabled !== false} />
 
-      {/* 2. Barra de Contagem Regressiva Topo */}
+      {/* 2. Barra de Contagem Regressiva Fina Topo */}
       {product.countdown_enabled && (
-        <div className="sticky top-11 z-20">
+        <div className="sticky top-[30px] sm:top-[34px] z-20">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="neon"
+            customColor={ds.countdown_color}
             label={t.countdown_label}
           />
         </div>
@@ -112,7 +118,12 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
                 productName={product.name}
                 currency={product.currency}
                 variant="neon"
-                size="xl"
+                customColor={ds.cta_color}
+                customTextColor={ds.cta_text_color}
+                size={ds.cta_size || 'xl'}
+                thickness={ds.cta_thickness || 'normal'}
+                rounded={ds.cta_rounded || 'xl'}
+                pulse={Boolean(ds.cta_pulse)}
               />
             </div>
           ) : (
@@ -220,79 +231,22 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
-      {/* 5. Depoimentos / Prova Social */}
-      {product.testimonials && product.testimonials.length > 0 && (
-        <section className="py-20 px-4 bg-gradient-to-b from-transparent via-slate-900/30 to-transparent">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white">
-                O que os alunos dizem sobre o método
-              </h2>
-              <p className="text-slate-400 mt-2">
-                Pessoas reais que aplicaram o treinamento e colheram resultados.
-              </p>
-            </div>
+      {/* 5. Depoimentos / Prova Social (Carrossel de Prints, Galeria, WhatsApp, Cards) */}
+      <SocialProofSection
+        product={product}
+        badgeText={t.testimonials_badge}
+        titleText={t.testimonials_title}
+        accentTextClass="text-emerald-400"
+        accentBgClass="bg-emerald-500/20"
+        accentBorderClass="border-emerald-500/40"
+        cardBgClass="bg-slate-950/90"
+        cardBorderClass="border-slate-800"
+        starColorClass="fill-amber-400 text-amber-400"
+        sectionBgClass="bg-gradient-to-b from-transparent via-slate-900/30 to-transparent"
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {product.testimonials.map((test, idx) => (
-                <div
-                  key={test.id || idx}
-                  className="p-6 rounded-2xl bg-slate-950/90 border border-slate-800 relative hover:border-emerald-500/30 transition-all flex flex-col justify-between"
-                >
-                  <div className="flex items-center gap-1 text-amber-400 mb-3">
-                    {[...Array(test.rating || 5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
-                  </div>
-
-                  <p className="text-slate-300 text-sm sm:text-base italic mb-6">
-                    "{test.content}"
-                  </p>
-
-                  <div className="flex items-center gap-3 pt-4 border-t border-slate-800/60">
-                    {test.avatarUrl ? (
-                      <img
-                        src={test.avatarUrl}
-                        alt={test.name}
-                        className="w-11 h-11 rounded-full object-cover border-2 border-emerald-500/40"
-                      />
-                    ) : (
-                      <div className="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center">
-                        {test.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{test.name}</h4>
-                      <p className="text-xs text-slate-400">{test.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 6. Garantia Incondicional */}
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto p-8 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left shadow-[0_0_40px_rgba(16,185,129,0.1)]">
-          <div className="w-24 h-24 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-            <Shield className="w-12 h-12" />
-          </div>
-
-          <div>
-            <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
-              Risco Zero
-            </span>
-            <h3 className="text-2xl font-black text-white mt-1 mb-2">
-              Garantia Blindada de {product.guarantee_days} Dias
-            </h3>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Você tem até {product.guarantee_days} dias para assistir às aulas e aplicar todo o método. Se por qualquer motivo você achar que não valeu a pena, basta nos avisar e devolveremos 100% do seu investimento. Sem burocracia.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* 6. Garantia Incondicional Ajustável */}
+      <GuaranteeSection product={product} defaultColor="emerald" />
 
       {/* 7. Caixa da Oferta Irrecusável (Pricing Card) */}
       {!showOffer && isDelayActive && (
@@ -318,7 +272,14 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
             </div>
 
             <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
-            <p className="text-slate-400 text-sm mb-6">Acesso completo e imediato ao material</p>
+            <p className="text-slate-400 text-sm mb-4">Acesso completo e imediato ao material</p>
+
+            {/* Seletor de Moeda direto no bloco de preço / CTA */}
+            {product.multilang_enabled !== false && (
+              <div className="mb-4">
+                <LanguageSelector variant="currency-pill" />
+              </div>
+            )}
 
             {/* Comparativo de Preço */}
             {product.original_price > product.promo_price && (
@@ -348,7 +309,12 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
                 productName={product.name}
                 currency={product.currency}
                 variant="neon"
-                size="xl"
+                customColor={ds.cta_color}
+                customTextColor={ds.cta_text_color}
+                size={ds.cta_size || 'xl'}
+                thickness={ds.cta_thickness || 'normal'}
+                rounded={ds.cta_rounded || 'xl'}
+                pulse={Boolean(ds.cta_pulse)}
               />
             </div>
 
@@ -413,12 +379,10 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
-      {/* 9. Rodapé Institucional */}
+      {/* 9. Rodapé Institucional com Logo Digitall Pay maior lá em baixo */}
       <footer className="py-12 px-4 border-t border-slate-800 text-center text-xs text-slate-500">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-3">
-          <div className="font-extrabold text-slate-300 text-base tracking-wider">
-            DIGITALL<span className="text-emerald-400"> PAY</span>
-          </div>
+          <BrandLogo size="lg" variant="neon" showText={true} />
           <p>© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
           <p className="max-w-xl text-slate-600 text-[11px] leading-relaxed">
             Este site não é afiliado ao Facebook, Google ou a qualquer entidade de anúncios. Após sair dessas plataformas, a responsabilidade é estritamente desta página.

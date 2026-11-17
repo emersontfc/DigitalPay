@@ -23,6 +23,12 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({ product }) =
     case 'midnight-violet':
     case 'emerald-prestige':
     case 'monochrome-editorial':
+    case 'ebook-classic-ivory':
+    case 'ebook-ocean-clean':
+    case 'ebook-emerald-reader':
+    case 'ebook-crimson-bestseller':
+    case 'ebook-royal-plum':
+    case 'ebook-midnight-gold':
       return <BrandThemeTemplate product={product} />;
     case 'kiwify-neon':
     default:

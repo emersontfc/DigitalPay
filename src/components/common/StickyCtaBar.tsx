@@ -72,15 +72,21 @@ export const StickyCtaBar: React.FC<StickyCtaBarProps> = ({
         </div>
 
         {/* Botão de Ação Direta */}
-        <div className="w-full sm:w-auto min-w-[280px]">
+        <div className="w-full sm:w-auto min-w-[260px]">
           <CheckoutButton
+            productId={product.id}
             ctaText={product.cta_text}
             ctaUrl={product.cta_url}
             productName={product.name}
             promoPrice={product.promo_price}
             currency={product.currency}
             variant={variant}
+            customColor={product.design_settings?.cta_color}
+            customTextColor={product.design_settings?.cta_text_color}
+            rounded={product.design_settings?.cta_rounded}
+            pulse={product.design_settings?.cta_pulse}
             size="normal"
+            thickness="thin"
             fullWidth={true}
           />
         </div>

@@ -71,34 +71,52 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
       bar: 'bg-[#050505]/95 border-b border-zinc-800',
       badge: 'bg-zinc-800 text-zinc-200 border border-zinc-700',
       icon: 'text-zinc-300',
+      isLight: false,
+    },
+    ivory: {
+      bar: 'bg-[#fbf8f3]/95 border-b border-amber-900/10',
+      badge: 'bg-amber-900/5 text-amber-900 border border-amber-900/15',
+      icon: 'text-amber-800',
+      isLight: true,
+    },
+    'ocean-light': {
+      bar: 'bg-white/95 border-b border-slate-200',
+      badge: 'bg-sky-50 text-sky-800 border border-sky-200',
+      icon: 'text-sky-600',
+      isLight: true,
     },
   } as Record<string, any>)[variant] || {
     bar: 'bg-[#07090e]/95 border-b border-slate-800/80',
     badge: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
     icon: 'text-emerald-400',
+    isLight: false,
   };
 
+  const logoVariant = styles.isLight
+    ? 'light'
+    : ((['neon', 'luxury', 'gold'].includes(variant) ? variant : 'neon') as 'neon' | 'luxury' | 'gold');
+
   return (
-    <div className={`w-full py-2 sm:py-2.5 px-3.5 sm:px-6 ${styles.bar} backdrop-blur-md sticky top-0 z-30 transition-all`}>
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
-        {/* Logo Digitall Pay no Topo */}
-        <div className="flex items-center gap-2">
+    <div className={`w-full py-1 sm:py-1.5 px-3 sm:px-5 ${styles.bar} backdrop-blur-md sticky top-0 z-30 transition-all`}>
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+        {/* Logo Digitall Pay ultrafina no Topo */}
+        <div className="flex items-center gap-1.5">
           <BrandLogo
-            size="sm"
-            variant={(['neon', 'luxury', 'gold'].includes(variant) ? variant : 'neon') as 'neon' | 'luxury' | 'gold'}
+            size="xs"
+            variant={logoVariant}
             showText={true}
           />
         </div>
 
-        {/* Lado Direito: Selo de Segurança + Seletor de Idioma & Moeda */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles.badge}`}>
-            <Lock className="w-3 h-3" />
+        {/* Lado Direito: Selo de Segurança discreto + Seletor de Idioma & Moeda */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <div className={`hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${styles.badge}`}>
+            <Lock className="w-2.5 h-2.5" />
             <span>{t.security_badge}</span>
           </div>
 
           {showLanguageSelector && (
-            <LanguageSelector variant="compact" />
+            <LanguageSelector variant="compact" lightMode={Boolean(styles.isLight)} />
           )}
         </div>
       </div>

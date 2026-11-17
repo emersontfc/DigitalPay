@@ -44,3 +44,33 @@
 .animate-float {
   animation: floatBadge 3.5s ease-in-out infinite;
 }
+
+/* Botão Pulsar (Efeito Heartbeat de Alta Conversão) */
+@keyframes ctaHeartbeat {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+  }
+  50% {
+    transform: scale(1.035);
+    box-shadow: 0 0 0 14px rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-cta-pulse {
+  animation: ctaHeartbeat 1.75s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-cta-pulse:hover {
+  animation: none;
+  transform: scale(1.02);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

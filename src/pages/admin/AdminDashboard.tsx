@@ -36,7 +36,8 @@ import {
   ArrowRight,
   KeyRound,
   CreditCard,
-  Truck
+  Truck,
+  CopyPlus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -94,6 +95,7 @@ export const AdminDashboard: React.FC = () => {
       modules: d.modules || [],
       testimonials: d.testimonials || [],
       faqs: d.faqs || [],
+      design_settings: d.design_settings ? JSON.parse(JSON.stringify(d.design_settings)) : {},
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -142,14 +144,32 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleDuplicateProduct = async (prod: Product) => {
-    const copy: Partial<Product> = {
-      ...prod,
-      id: undefined,
-      name: `${prod.name} (Cópia)`,
-      slug: `${prod.slug}-copia-${Date.now().toString().slice(-4)}`,
-    };
-    await saveProduct(copy);
-    await loadData();
+    try {
+      setLoading(true);
+      const cloned: Partial<Product> = {
+        ...JSON.parse(JSON.stringify(prod)),
+        id: undefined,
+        name: `${prod.name} (Cópia)`,
+        slug: `${prod.slug}-copia-${Date.now().toString().slice(-4)}`,
+        created_at: undefined,
+        updated_at: undefined,
+      };
+      const savedCopy = await saveProduct(cloned);
+      await loadData();
+      // Abre imediatamente a cópia no editor para remodelar sem perder tempo
+      setIsEditorOpen(false);
+      setTimeout(() => {
+        setEditingProduct(savedCopy);
+        setIsEditorOpen(true);
+      }, 50);
+      setToastMessage(`Página "${prod.name}" duplicada! Você já pode remodelar a cópia.`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      console.error('Erro ao duplicar página:', err);
+      alert('Erro ao duplicar página: ' + (err?.message || 'Falha ao duplicar'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopyLink = (slug: string) => {
@@ -440,6 +460,12 @@ export const AdminDashboard: React.FC = () => {
               <option value="kiwify-neon">Kiwify Neon (Dark Glow)</option>
               <option value="minimal-luxury">Minimal Luxury (High Ticket)</option>
               <option value="vanguard-black-gold">Vanguard Black & Gold</option>
+              <option value="ebook-classic-ivory">📚 E-book Clássico Marfim</option>
+              <option value="ebook-ocean-clean">📚 E-book Azul Oceano</option>
+              <option value="ebook-emerald-reader">📚 E-book Esmeralda Express</option>
+              <option value="ebook-crimson-bestseller">📚 E-book Bestseller Vermelho</option>
+              <option value="ebook-royal-plum">📚 E-book Autoridade Roxo</option>
+              <option value="ebook-midnight-gold">📚 E-book Luxo Noturno</option>
               <option value="titanium-tech">Titanium Tech (Modern SaaS)</option>
               <option value="crimson-beast">Crimson Beast (Fitness & Ação)</option>
               <option value="rose-gold-glamour">Rose Gold (Beleza & D2C)</option>
@@ -507,6 +533,12 @@ export const AdminDashboard: React.FC = () => {
                 'kiwify-neon': { label: 'Kiwify Neon', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
                 'minimal-luxury': { label: 'Minimal Luxury', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30' },
                 'vanguard-black-gold': { label: 'Vanguard Gold', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+                'ebook-classic-ivory': { label: 'E-book Marfim', color: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
+                'ebook-ocean-clean': { label: 'E-book Oceano', color: 'bg-sky-500/15 text-sky-300 border-sky-500/30' },
+                'ebook-emerald-reader': { label: 'E-book Esmeralda', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
+                'ebook-crimson-bestseller': { label: 'E-book Bestseller', color: 'bg-red-500/15 text-red-300 border-red-500/30' },
+                'ebook-royal-plum': { label: 'E-book Roxo', color: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30' },
+                'ebook-midnight-gold': { label: 'E-book VIP Ouro', color: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' },
                 'titanium-tech': { label: 'Titanium Tech', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' },
                 'crimson-beast': { label: 'Crimson Beast', color: 'bg-red-500/10 text-red-400 border-red-500/30' },
                 'rose-gold-glamour': { label: 'Rose Gold', color: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
@@ -618,30 +650,31 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="px-5 py-3 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between">
+                  <div className="px-5 py-3 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between gap-2">
                     <button
                       onClick={() => {
                         setEditingProduct(prod);
                         setIsEditorOpen(true);
                       }}
-                      className="text-xs font-bold text-slate-300 hover:text-emerald-400 flex items-center gap-1.5 transition-colors"
+                      className="text-xs font-bold text-slate-300 hover:text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Edit className="w-3.5 h-3.5" />
-                      <span>Editar Página</span>
+                      <span>Editar</span>
                     </button>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleDuplicateProduct(prod)}
-                        title="Duplicar Página"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-slate-800 transition-colors"
+                        title="Duplicar esta página para remodelar rapidamente"
+                        className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/25 flex items-center gap-1 transition-colors cursor-pointer"
                       >
-                        <Copy className="w-3.5 h-3.5" />
+                        <CopyPlus className="w-3.5 h-3.5" />
+                        <span>Duplicar</span>
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(prod.id, prod.name)}
                         title="Excluir Página"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -659,6 +692,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Modais */}
       {isEditorOpen && (
         <ProductEditorModal
+          key={editingProduct?.id || 'new'}
           product={editingProduct}
           isOpen={isEditorOpen}
           onClose={() => {
@@ -666,6 +700,7 @@ export const AdminDashboard: React.FC = () => {
             setEditingProduct(null);
           }}
           onSave={handleSaveProduct}
+          onDuplicate={handleDuplicateProduct}
         />
       )}
 

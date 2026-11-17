@@ -122,8 +122,19 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
   }
 }
 
+function normalizeProduct(p: Product): Product {
+  const embeddedDesign = (p.translations as any)?._design;
+  return {
+    ...p,
+    promo_price: Number(p.promo_price) || 97,
+    original_price: Number(p.original_price) || 197,
+    currency: p.currency || 'BRL',
+    design_settings: p.design_settings || embeddedDesign || {},
+  };
+}
+
 export async function fetchProducts(): Promise<Product[]> {
-  const local = getLocalProducts();
+  const local = getLocalProducts().map(normalizeProduct);
   const client = getSupabaseClient();
   if (!client) {
     return local;
@@ -142,10 +153,16 @@ export async function fetchProducts(): Promise<Product[]> {
 
     // Mescla dados do Supabase com os dados locais garantindo que nenhuma página gravada seja perdida
     const map = new Map<string, Product>();
-    (data || []).forEach((p: Product) => map.set(p.id, p));
+    (data || []).forEach((p: Product) => map.set(p.id, normalizeProduct(p)));
     local.forEach((p: Product) => {
       if (!map.has(p.id)) {
         map.set(p.id, p);
+      } else {
+        // Preserva design_settings locais caso a coluna remota ainda não exista
+        const remote = map.get(p.id)!;
+        if ((!remote.design_settings || Object.keys(remote.design_settings).length === 0) && p.design_settings && Object.keys(p.design_settings).length > 0) {
+          map.set(p.id, { ...remote, design_settings: p.design_settings });
+        }
       }
     });
 
@@ -160,16 +177,10 @@ export async function fetchProducts(): Promise<Product[]> {
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const local = getLocalProducts().find(p => p.slug === slug);
-  const normalize = (p: Product): Product => ({
-    ...p,
-    promo_price: Number(p.promo_price) || 97,
-    original_price: Number(p.original_price) || 197,
-    currency: p.currency || 'BRL',
-  });
 
   const client = getSupabaseClient();
   if (!client) {
-    return local ? normalize(local) : null;
+    return local ? normalizeProduct(local) : null;
   }
 
   try {
@@ -180,12 +191,16 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
       .maybeSingle();
 
     if (error || !data) {
-      return local ? normalize(local) : null;
+      return local ? normalizeProduct(local) : null;
     }
 
-    return normalize(data as Product);
+    const remote = normalizeProduct(data as Product);
+    if ((!remote.design_settings || Object.keys(remote.design_settings).length === 0) && local?.design_settings) {
+      return { ...remote, design_settings: local.design_settings };
+    }
+    return remote;
   } catch {
-    return local ? normalize(local) : null;
+    return local ? normalizeProduct(local) : null;
   }
 }
 
@@ -203,6 +218,12 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
   const cleanSlug = rawSlug || `produto-${Date.now().toString().slice(-4)}`;
+
+  const designSettings = product.design_settings || {};
+  const translationsWithDesign = {
+    ...(product.translations || {}),
+    _design: designSettings,
+  };
 
   const fullProduct: Product = {
     id: targetId,
@@ -224,7 +245,7 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     cta_text: product.cta_text || 'QUERO GARANTIR MINHA VAGA AGORA',
     cta_url: product.cta_url || 'https://pay.kiwify.com.br',
     cta_subtext: product.cta_subtext || '🔒 Compra 100% Segura • Acesso Imediato',
-    guarantee_days: Number(product.guarantee_days) || 7,
+    guarantee_days: product.guarantee_days !== undefined ? Number(product.guarantee_days) : 7,
     countdown_enabled: product.countdown_enabled !== undefined ? product.countdown_enabled : true,
     countdown_minutes: Number(product.countdown_minutes) || 15,
     features: product.features || [],
@@ -235,7 +256,8 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     whatsapp_message: product.whatsapp_message ? product.whatsapp_message.trim() : undefined,
     facebook_pixel_id: product.facebook_pixel_id ? product.facebook_pixel_id.trim() : undefined,
     multilang_enabled: product.multilang_enabled !== undefined ? product.multilang_enabled : true,
-    translations: product.translations || {},
+    translations: translationsWithDesign as any,
+    design_settings: designSettings,
     delivery_mode: product.delivery_mode || 'automatic',
     access_expires_days: Number(product.access_expires_days) || 0,
     max_downloads: Number(product.max_downloads) || 0,
@@ -262,24 +284,31 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
         .upsert(fullProduct, { onConflict: 'id' });
 
       if (error) {
-        console.warn('Aviso ao sincronizar produto no Supabase (tentando modo de compatibilidade):', error.message);
-        // Fallback de compatibilidade se a tabela remota tiver restrições antigas
-        const compatiblePayload = {
-          ...fullProduct,
-          hero_type: fullProduct.hero_type === 'vsl' ? 'video' : fullProduct.hero_type,
-        };
-        delete (compatiblePayload as any).vsl_pitch_delay_seconds;
-        delete (compatiblePayload as any).vsl_autoplay;
-        delete (compatiblePayload as any).translations;
-        delete (compatiblePayload as any).multilang_enabled;
-        delete (compatiblePayload as any).deliverables;
-        delete (compatiblePayload as any).delivery_mode;
-        delete (compatiblePayload as any).access_expires_days;
-        delete (compatiblePayload as any).max_downloads;
+        console.warn('Aviso ao sincronizar produto no Supabase (tentando modo compatível sem design_settings):', error.message);
+        // Tentativa 2: remove apenas design_settings (mantém translations._design para persistência na nuvem!)
+        const payloadNoDesignCol = { ...fullProduct };
+        delete (payloadNoDesignCol as any).design_settings;
+        const retry1 = await client.from('products').upsert(payloadNoDesignCol, { onConflict: 'id' });
 
-        const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
-        if (retryResult.error) {
-          console.warn('Aviso final Supabase (salvo localmente com sucesso total):', retryResult.error.message);
+        if (retry1.error) {
+          console.warn('Tentando modo de compatibilidade legado:', retry1.error.message);
+          const compatiblePayload = {
+            ...payloadNoDesignCol,
+            hero_type: fullProduct.hero_type === 'vsl' ? 'video' : fullProduct.hero_type,
+          };
+          delete (compatiblePayload as any).vsl_pitch_delay_seconds;
+          delete (compatiblePayload as any).vsl_autoplay;
+          delete (compatiblePayload as any).translations;
+          delete (compatiblePayload as any).multilang_enabled;
+          delete (compatiblePayload as any).deliverables;
+          delete (compatiblePayload as any).delivery_mode;
+          delete (compatiblePayload as any).access_expires_days;
+          delete (compatiblePayload as any).max_downloads;
+
+          const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
+          if (retryResult.error) {
+            console.warn('Aviso final Supabase (salvo localmente com sucesso total):', retryResult.error.message);
+          }
         }
       }
     } catch (e) {

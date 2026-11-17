@@ -5,6 +5,10 @@ import { VideoPlayer } from '../common/VideoPlayer';
 import { CheckoutButton } from '../common/CheckoutButton';
 import { StickyCtaBar } from '../common/StickyCtaBar';
 import { SalesPageTopBar } from '../common/SalesPageTopBar';
+import { BrandLogo } from '../common/BrandLogo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { SocialProofSection } from '../common/SocialProofSection';
+import { GuaranteeSection } from '../common/GuaranteeSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -45,18 +49,20 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
 
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
+  const ds = product.design_settings || {};
 
   return (
     <div className="min-h-screen bg-[#080808] text-neutral-100 selection:bg-amber-400 selection:text-neutral-950 font-sans">
-      {/* 1. Barra de Identidade Visual e Segurança Topo: Digitall Pay */}
+      {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
       <SalesPageTopBar variant="gold" showLanguageSelector={product.multilang_enabled !== false} />
 
-      {/* 2. Barra de Escassez Ouro e Preto */}
+      {/* 2. Barra de Escassez Fina Ouro e Preto */}
       {product.countdown_enabled && (
-        <div className="sticky top-11 z-20 shadow-xl">
+        <div className="sticky top-[30px] sm:top-[34px] z-20 shadow-xl">
           <CountdownTimer
             initialMinutes={product.countdown_minutes}
             variant="gold"
+            customColor={ds.countdown_color}
             label={t.countdown_urgency}
           />
         </div>
@@ -106,7 +112,12 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
                 productName={product.name}
                 currency={product.currency}
                 variant="gold"
-                size="xl"
+                customColor={ds.cta_color}
+                customTextColor={ds.cta_text_color}
+                size={ds.cta_size || 'xl'}
+                thickness={ds.cta_thickness || 'normal'}
+                rounded={ds.cta_rounded || 'xl'}
+                pulse={Boolean(ds.cta_pulse)}
               />
             </div>
           ) : (
@@ -191,72 +202,22 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
         </section>
       )}
 
-      {/* 5. Depoimentos */}
-      {product.testimonials && product.testimonials.length > 0 && (
-        <section className="py-20 px-4 bg-neutral-900/30 border-t border-neutral-800">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-black text-white">Resultados Reais</h2>
-              <p className="text-neutral-400 text-sm mt-2">
-                Veja o que os membros têm a dizer sobre o impacto prático.
-              </p>
-            </div>
+      {/* 5. Depoimentos / Provas Sociais */}
+      <SocialProofSection
+        product={product}
+        badgeText={t.testimonials_badge}
+        titleText={t.testimonials_title}
+        accentTextClass="text-amber-400"
+        accentBgClass="bg-amber-500/20"
+        accentBorderClass="border-amber-500/40"
+        cardBgClass="bg-neutral-950"
+        cardBorderClass="border-neutral-800"
+        starColorClass="fill-amber-400 text-amber-400"
+        sectionBgClass="bg-neutral-900/30 border-t border-neutral-800"
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {product.testimonials.map((t, idx) => (
-                <div
-                  key={t.id || idx}
-                  className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 flex flex-col justify-between"
-                >
-                  <div className="flex gap-1 text-amber-400 mb-3">
-                    {[...Array(t.rating || 5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-neutral-300 text-sm italic mb-6">"{t.content}"</p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-neutral-800">
-                    {t.avatarUrl ? (
-                      <img
-                        src={t.avatarUrl}
-                        alt={t.name}
-                        className="w-10 h-10 rounded-full object-cover border border-amber-500/50"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
-                        {t.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="text-sm font-bold text-white">{t.name}</h4>
-                      <p className="text-xs text-neutral-400">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 6. Garantia */}
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto p-8 rounded-3xl border-2 border-amber-500/40 bg-gradient-to-r from-neutral-950 to-neutral-900 flex flex-col sm:flex-row items-center gap-6 shadow-[0_0_35px_rgba(245,158,11,0.15)]">
-          <div className="w-20 h-20 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/40">
-            <ShieldAlert className="w-10 h-10" />
-          </div>
-          <div>
-            <span className="text-xs font-black uppercase text-amber-400 tracking-wider">
-              Compromisso Inabalável
-            </span>
-            <h3 className="text-2xl font-black text-white mt-1 mb-2">
-              Garantia de {product.guarantee_days} Dias de Satisfação
-            </h3>
-            <p className="text-neutral-300 text-sm leading-relaxed">
-              Você tem até {product.guarantee_days} dias para aplicar tudo. Se você não ficar 100% satisfeito, basta nos mandar uma mensagem que estornamos cada centavo pago. Sem perguntas embaraçosas.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* 6. Garantia Ajustável */}
+      <GuaranteeSection product={product} defaultColor="gold" />
 
       {/* 7. Caixa da Oferta Final */}
       {!showOffer && isDelayActive && (
@@ -285,7 +246,14 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
             )}
 
             <h3 className="text-2xl font-black text-white mb-2">{product.name}</h3>
-            <p className="text-neutral-400 text-sm mb-6">Aproveite enquanto as vagas ainda estão abertas</p>
+            <p className="text-neutral-400 text-sm mb-4">Aproveite enquanto as vagas ainda estão abertas</p>
+
+            {/* Seletor de Moeda direto no bloco de preço / CTA */}
+            {product.multilang_enabled !== false && (
+              <div className="mb-4">
+                <LanguageSelector variant="currency-pill" />
+              </div>
+            )}
 
             {product.original_price > product.promo_price && (
               <div className="text-neutral-500 text-sm line-through font-semibold mb-1">
@@ -309,7 +277,12 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
               productName={product.name}
               currency={product.currency}
               variant="gold"
-              size="xl"
+              customColor={ds.cta_color}
+              customTextColor={ds.cta_text_color}
+              size={ds.cta_size || 'xl'}
+              thickness={ds.cta_thickness || 'normal'}
+              rounded={ds.cta_rounded || 'xl'}
+              pulse={Boolean(ds.cta_pulse)}
             />
 
             <div className="flex items-center justify-center gap-6 text-xs text-neutral-400 mt-6 pt-4 border-t border-neutral-800">
@@ -366,10 +339,12 @@ export const VanguardBlackGoldTemplate: React.FC<TemplateProps> = ({ product }) 
         </section>
       )}
 
-      {/* Rodapé */}
-      <footer className="py-12 px-4 border-t border-neutral-800 text-center text-xs text-neutral-500">
-        <p className="font-black text-neutral-300 tracking-wider">DIGITALL PAY</p>
-        <p className="mt-1">© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
+      {/* Rodapé com Logo Digitall Pay maior lá em baixo */}
+      <footer className="py-12 px-4 border-t border-neutral-800 text-center text-xs text-neutral-500 space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo size="lg" variant="gold" showText={true} />
+        </div>
+        <p>© {new Date().getFullYear()} {product.name}. Todos os direitos reservados.</p>
       </footer>
 
       <StickyCtaBar product={product} variant="gold" show={showOffer} />

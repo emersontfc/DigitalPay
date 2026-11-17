@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 interface BrandLogoProps {
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'neon' | 'luxury' | 'gold' | 'default';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  variant?: 'neon' | 'luxury' | 'gold' | 'default' | 'light';
   showText?: boolean;
   linkTo?: string;
   className?: string;
@@ -18,6 +18,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 }) => {
   // Configurações de tamanho
   const sizeConfig = {
+    xs: {
+      box: 'w-5 h-5 rounded-md p-[1.5px]',
+      inner: 'rounded-[4px]',
+      textIcon: 'text-[9px]',
+      brandText: 'text-xs sm:text-sm',
+      subText: 'text-[8px]',
+    },
     sm: {
       box: 'w-7 h-7 rounded-lg p-0.5',
       inner: 'rounded-[6px]',
@@ -67,6 +74,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       accentText: 'text-amber-400',
       badge: 'border-amber-500/20 bg-amber-500/10 text-amber-300',
     },
+    light: {
+      gradient: 'from-emerald-600 via-teal-500 to-emerald-700',
+      shadow: 'shadow-sm',
+      iconText: 'text-emerald-400',
+      primaryText: 'text-slate-900',
+      accentText: 'text-emerald-600',
+      badge: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700',
+    },
     default: {
       gradient: 'from-emerald-500 to-teal-400',
       shadow: 'shadow-[0_0_20px_rgba(16,185,129,0.35)]',
@@ -78,7 +93,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   }[variant];
 
   const content = (
-    <div className={`inline-flex items-center gap-2.5 group select-none ${className}`}>
+    <div className={`inline-flex items-center ${size === 'xs' ? 'gap-1.5' : 'gap-2.5'} group select-none ${className}`}>
       {/* Símbolo DP com Gradiente e Glow */}
       <div
         className={`${sizeConfig.box} bg-gradient-to-tr ${variantConfig.gradient} ${variantConfig.shadow} transition-transform duration-200 group-hover:scale-105 shrink-0`}

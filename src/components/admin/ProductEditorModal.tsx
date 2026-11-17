@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
-import { Product, TemplateType, ModuleItem, Testimonial, FaqItem, PageModel, ProductDeliverable, DeliveryMode } from '../../types';
+import {
+  Product,
+  TemplateType,
+  ModuleItem,
+  Testimonial,
+  FaqItem,
+  PageModel,
+  ProductDeliverable,
+  DeliveryMode,
+  PageDesignSettings,
+  SocialProofLayout,
+  SocialProofImage,
+  GuaranteeStyle,
+  ButtonSize,
+  ButtonThickness,
+  ButtonRounded,
+} from '../../types';
 import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
 import { ModelManagerModal } from './ModelManagerModal';
@@ -7,6 +23,7 @@ import { DeliverablesManager } from './DeliverablesManager';
 import { SUPPORTED_CURRENCIES } from '../../utils/currency';
 import { ImageUploadInput } from '../common/ImageUploadInput';
 import { VideoPlayer, resolveVideoSource } from '../common/VideoPlayer';
+import { CheckoutButton } from '../common/CheckoutButton';
 import { useSalesPageLanguage, translateProduct } from '../../utils/i18n';
 import {
   X,
@@ -26,14 +43,16 @@ import {
   AlertCircle,
   Loader2,
   Upload,
-  Play,
-  Film,
   Clock,
-  Volume2,
   BarChart3,
   MessageCircle,
   Globe,
-  Package
+  Package,
+  Palette,
+  Shield,
+  Zap,
+  Image as ImageIcon,
+  CopyPlus
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -41,19 +60,49 @@ interface ProductEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (product: Partial<Product>) => Promise<void>;
+  onDuplicate?: (product: Product) => Promise<void> | void;
 }
+
+const BUTTON_COLOR_PRESETS = [
+  { id: 'auto', label: 'Padrão do Template', swatch: 'linear-gradient(135deg, #10b981, #6366f1)' },
+  { id: 'green', label: 'Verde Neon', swatch: '#10b981' },
+  { id: 'red', label: 'Vermelho Urgência', swatch: '#dc2626' },
+  { id: 'gold', label: 'Dourado VIP', swatch: '#f59e0b' },
+  { id: 'blue', label: 'Azul Royal', swatch: '#2563eb' },
+  { id: 'orange', label: 'Laranja Fogo', swatch: '#f97316' },
+  { id: 'purple', label: 'Roxo Premium', swatch: '#9333ea' },
+  { id: 'rose', label: 'Rosa Glamour', swatch: '#f43f5e' },
+  { id: 'cyan', label: 'Ciano Tech', swatch: '#06b6d4' },
+  { id: 'black', label: 'Preto Luxo', swatch: '#18181b' },
+  { id: 'white', label: 'Branco Contraste', swatch: '#ffffff' },
+];
+
+const TIMER_COLOR_PRESETS = [
+  { id: 'auto', label: 'Automático', swatch: 'linear-gradient(135deg, #065f46, #1e293b)' },
+  { id: 'red', label: 'Vermelho', swatch: '#dc2626' },
+  { id: 'green', label: 'Verde', swatch: '#059669' },
+  { id: 'gold', label: 'Dourado', swatch: '#d97706' },
+  { id: 'blue', label: 'Azul', swatch: '#2563eb' },
+  { id: 'orange', label: 'Laranja', swatch: '#ea580c' },
+  { id: 'purple', label: 'Roxo', swatch: '#7c3aed' },
+  { id: 'rose', label: 'Rosa', swatch: '#e11d48' },
+  { id: 'black', label: 'Preto', swatch: '#18181b' },
+];
 
 export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   product,
   isOpen,
   onClose,
   onSave,
+  onDuplicate,
 }) => {
   const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'faq' | 'entregaveis' | 'preview'>('geral');
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+
+  const initialDesign: PageDesignSettings = product?.design_settings || {};
 
   // Form states
   const [name, setName] = useState(product?.name || '');
@@ -82,13 +131,31 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [multilangEnabled, setMultilangEnabled] = useState<boolean>(product?.multilang_enabled !== false);
   const [previewLang] = useSalesPageLanguage();
 
+  // Personalização Visual (Botões, Temporizador, Provas Sociais, Garantia)
+  const [countdownColor, setCountdownColor] = useState<string>(initialDesign.countdown_color || 'auto');
+  const [ctaColor, setCtaColor] = useState<string>(initialDesign.cta_color || 'auto');
+  const [ctaTextColor, setCtaTextColor] = useState<string>(initialDesign.cta_text_color || 'auto');
+  const [ctaSize, setCtaSize] = useState<ButtonSize>(initialDesign.cta_size || 'xl');
+  const [ctaThickness, setCtaThickness] = useState<ButtonThickness>(initialDesign.cta_thickness || 'normal');
+  const [ctaRounded, setCtaRounded] = useState<ButtonRounded>(initialDesign.cta_rounded || 'xl');
+  const [ctaPulse, setCtaPulse] = useState<boolean>(Boolean(initialDesign.cta_pulse));
+  const [socialProofLayout, setSocialProofLayout] = useState<SocialProofLayout>(initialDesign.social_proof_layout || 'cards');
+  const [socialProofImages, setSocialProofImages] = useState<SocialProofImage[]>(initialDesign.social_proof_images || []);
+  const [guaranteeEnabled, setGuaranteeEnabled] = useState<boolean>(initialDesign.guarantee_enabled !== false);
+  const [guaranteeStyle, setGuaranteeStyle] = useState<GuaranteeStyle>(initialDesign.guarantee_style || 'card');
+  const [guaranteeSize, setGuaranteeSize] = useState<'sm' | 'md' | 'lg'>(initialDesign.guarantee_size || 'md');
+  const [guaranteeColor, setGuaranteeColor] = useState<string>(initialDesign.guarantee_color || 'auto');
+  const [guaranteeTitle, setGuaranteeTitle] = useState<string>(initialDesign.guarantee_title || '');
+  const [guaranteeDescription, setGuaranteeDescription] = useState<string>(initialDesign.guarantee_description || '');
+  const [guaranteeButtonText, setGuaranteeButtonText] = useState<string>(initialDesign.guarantee_button_text || '');
+
   // Entregáveis & PaySuite
   const [deliverables, setDeliverables] = useState<ProductDeliverable[]>(product?.deliverables || []);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(product?.delivery_mode || 'automatic');
   const [accessExpiresDays, setAccessExpiresDays] = useState<number>(product?.access_expires_days || 0);
   const [maxDownloads, setMaxDownloads] = useState<number>(product?.max_downloads || 0);
 
-  const [guaranteeDays, setGuaranteeDays] = useState<number>(product?.guarantee_days || 7);
+  const [guaranteeDays, setGuaranteeDays] = useState<number>(product?.guarantee_days !== undefined ? product.guarantee_days : 7);
   const [countdownEnabled, setCountdownEnabled] = useState<boolean>(product?.countdown_enabled !== undefined ? product.countdown_enabled : true);
   const [countdownMinutes, setCountdownMinutes] = useState<number>(product?.countdown_minutes || 15);
 
@@ -200,6 +267,40 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     setTestimonials(testimonials.filter((t) => t.id !== id));
   };
 
+  const handleAddSocialProofImage = () => {
+    setSocialProofImages([
+      ...socialProofImages,
+      {
+        id: crypto.randomUUID(),
+        url: '',
+        caption: '',
+      },
+    ]);
+  };
+
+  const handleRemoveSocialProofImage = (id: string) => {
+    setSocialProofImages(socialProofImages.filter((img) => img.id !== id));
+  };
+
+  const currentDesignSettings: PageDesignSettings = {
+    countdown_color: countdownColor,
+    cta_color: ctaColor,
+    cta_text_color: ctaTextColor,
+    cta_size: ctaSize,
+    cta_thickness: ctaThickness,
+    cta_rounded: ctaRounded,
+    cta_pulse: ctaPulse,
+    social_proof_layout: socialProofLayout,
+    social_proof_images: socialProofImages.filter((i) => i.url.trim().length > 0),
+    guarantee_enabled: guaranteeEnabled,
+    guarantee_style: guaranteeStyle,
+    guarantee_size: guaranteeSize,
+    guarantee_color: guaranteeColor,
+    guarantee_title: guaranteeTitle.trim() || undefined,
+    guarantee_description: guaranteeDescription.trim() || undefined,
+    guarantee_button_text: guaranteeButtonText.trim() || undefined,
+  };
+
   // Preview object
   const currentPreviewProduct: Product = {
     id: product?.id || 'preview-id',
@@ -232,6 +333,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     modules,
     testimonials,
     faqs,
+    design_settings: currentDesignSettings,
     deliverables,
     delivery_mode: deliveryMode,
     access_expires_days: Number(accessExpiresDays) || 0,
@@ -242,6 +344,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
 
   const handleApplyModel = (model: PageModel) => {
     const d = model.productData;
+    if (model.template) setTemplate(model.template);
     if (d.template) setTemplate(d.template);
     if (d.headline) setHeadline(d.headline);
     if (d.subheadline !== undefined) setSubheadline(d.subheadline);
@@ -271,6 +374,25 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     if (d.delivery_mode) setDeliveryMode(d.delivery_mode);
     if (d.access_expires_days !== undefined) setAccessExpiresDays(d.access_expires_days);
     if (d.max_downloads !== undefined) setMaxDownloads(d.max_downloads);
+    if (d.design_settings) {
+      const ds = d.design_settings;
+      if (ds.countdown_color) setCountdownColor(ds.countdown_color);
+      if (ds.cta_color) setCtaColor(ds.cta_color);
+      if (ds.cta_text_color) setCtaTextColor(ds.cta_text_color);
+      if (ds.cta_size) setCtaSize(ds.cta_size);
+      if (ds.cta_thickness) setCtaThickness(ds.cta_thickness);
+      if (ds.cta_rounded) setCtaRounded(ds.cta_rounded);
+      if (ds.cta_pulse !== undefined) setCtaPulse(ds.cta_pulse);
+      if (ds.social_proof_layout) setSocialProofLayout(ds.social_proof_layout);
+      if (ds.social_proof_images) setSocialProofImages([...ds.social_proof_images]);
+      if (ds.guarantee_enabled !== undefined) setGuaranteeEnabled(ds.guarantee_enabled);
+      if (ds.guarantee_style) setGuaranteeStyle(ds.guarantee_style);
+      if (ds.guarantee_size) setGuaranteeSize(ds.guarantee_size);
+      if (ds.guarantee_color) setGuaranteeColor(ds.guarantee_color);
+      if (ds.guarantee_title !== undefined) setGuaranteeTitle(ds.guarantee_title);
+      if (ds.guarantee_description !== undefined) setGuaranteeDescription(ds.guarantee_description);
+      if (ds.guarantee_button_text !== undefined) setGuaranteeButtonText(ds.guarantee_button_text);
+    }
   };
 
   const handleManualSave = async () => {
@@ -318,13 +440,14 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         whatsapp_number: whatsappNumber.trim() || undefined,
         whatsapp_message: whatsappMessage.trim() || undefined,
         multilang_enabled: multilangEnabled,
-        guarantee_days: Number(guaranteeDays) || 7,
+        guarantee_days: Number(guaranteeDays) >= 0 ? Number(guaranteeDays) : 7,
         countdown_enabled: countdownEnabled,
         countdown_minutes: Number(countdownMinutes) || 15,
         features: features.filter((f) => f.trim().length > 0),
         modules,
         testimonials,
         faqs,
+        design_settings: currentDesignSettings,
         deliverables,
         delivery_mode: deliveryMode,
         access_expires_days: Number(accessExpiresDays) || 0,
@@ -362,12 +485,25 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                 {product ? `Editar: ${product.name}` : 'Criar Nova Página'}
               </h3>
               <p className="text-[10px] sm:text-xs text-slate-400 truncate hidden sm:block">
-                Configure template, mídias, preços e botões persuasivos
+                Configure template, cores, botões, provas sociais, garantia e entregáveis
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Botão Duplicar Página (quando editando uma página existente) */}
+            {product?.id && onDuplicate && (
+              <button
+                type="button"
+                onClick={() => onDuplicate(currentPreviewProduct)}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Criar uma cópia desta página para remodelar rapidamente"
+              >
+                <CopyPlus className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">Duplicar</span>
+              </button>
+            )}
+
             {/* Botão Biblioteca de Modelos */}
             <button
               type="button"
@@ -948,7 +1084,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                         <ul className="list-disc pl-4 space-y-0.5 text-slate-400">
                           <li>Crie o link de pagamento no seu painel do PaySuite (ou Kiwify) e cole a URL no campo acima.</li>
                           <li>No painel do PaySuite, configure a <strong>URL de Retorno</strong> para: <code className="text-emerald-400 font-mono">https://digitallpay.store/pagamento/retorno</code></li>
-                          <li>O comprador preenche nome e e-mail antes de pagar, é direcionado ao PaySuite e, ao retornar, os entregáveis são liberados automaticamente!</li>
+                          <li>O comprador é redirecionado diretamente ao PaySuite e, ao retornar, os entregáveis são liberados automaticamente!</li>
                         </ul>
                       </div>
                     </div>
@@ -977,6 +1113,177 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                           value={ctaSubtext}
                           onChange={(e) => setCtaSubtext(e.target.value)}
                           className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PERSONALIZAÇÃO DO BOTÃO DE COMPRA (COR, TAMANHO, ESPESSURA & PULSAR) */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <Palette className="w-4 h-4 text-emerald-400" />
+                        <span>Personalizar Botão de Compra (Cor, Tamanho, Espessura & Pulsar)</span>
+                      </h4>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Visual Personalizável
+                      </span>
+                    </div>
+
+                    {/* Cor do Botão */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Cor do Botão CTA
+                      </label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {BUTTON_COLOR_PRESETS.map((preset) => {
+                          const isSelected = ctaColor === preset.id;
+                          return (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => setCtaColor(preset.id)}
+                              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-slate-800 border-emerald-400 text-white ring-1 ring-emerald-400'
+                                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                              }`}
+                            >
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-white/25 shrink-0"
+                                style={{ background: preset.swatch }}
+                              />
+                              <span>{preset.label}</span>
+                            </button>
+                          );
+                        })}
+
+                        {/* Seletor de Cor Livre (Color Picker) */}
+                        <label
+                          className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 border cursor-pointer transition-all ${
+                            ctaColor.startsWith('#')
+                              ? 'bg-slate-800 border-emerald-400 text-white ring-1 ring-emerald-400'
+                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          }`}
+                          title="Escolher qualquer cor personalizada"
+                        >
+                          <input
+                            type="color"
+                            value={ctaColor.startsWith('#') ? ctaColor : '#10b981'}
+                            onChange={(e) => setCtaColor(e.target.value)}
+                            className="w-4 h-4 rounded border-0 bg-transparent cursor-pointer p-0"
+                          />
+                          <span>Cor Livre</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Tamanho, Espessura, Bordas e Cor do Texto */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Tamanho do Botão
+                        </label>
+                        <select
+                          value={ctaSize}
+                          onChange={(e) => setCtaSize(e.target.value as ButtonSize)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                        >
+                          <option value="sm">Pequeno (Compacto)</option>
+                          <option value="md">Médio</option>
+                          <option value="lg">Grande</option>
+                          <option value="xl">Extra Grande</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Espessura / Altura
+                        </label>
+                        <select
+                          value={ctaThickness}
+                          onChange={(e) => setCtaThickness(e.target.value as ButtonThickness)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                        >
+                          <option value="thin">Fino (Slim)</option>
+                          <option value="normal">Normal</option>
+                          <option value="thick">Grosso (Destaque)</option>
+                          <option value="extra-thick">Robusto (Máximo)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Formato das Bordas
+                        </label>
+                        <select
+                          value={ctaRounded}
+                          onChange={(e) => setCtaRounded(e.target.value as ButtonRounded)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                        >
+                          <option value="md">Retangular Suave</option>
+                          <option value="xl">Arredondado</option>
+                          <option value="full">Pílula (Redondo)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Cor do Texto
+                        </label>
+                        <select
+                          value={ctaTextColor}
+                          onChange={(e) => setCtaTextColor(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                        >
+                          <option value="auto">Automático</option>
+                          <option value="#ffffff">Branco</option>
+                          <option value="#020617">Preto</option>
+                          <option value="#fef08a">Amarelo Claro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Toggle Botão Pulsar */}
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900 border border-slate-800">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white">Efeito Botão Pulsar (Heartbeat)</div>
+                          <div className="text-[11px] text-slate-400">
+                            Faz o botão pulsar suavemente para chamar atenção e aumentar os cliques
+                          </div>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={ctaPulse}
+                          onChange={(e) => setCtaPulse(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+
+                    {/* Pré-visualização Ao Vivo do Botão */}
+                    <div className="p-5 rounded-xl bg-black/50 border border-slate-800/80 flex flex-col items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                        Prévia Ao Vivo do Botão
+                      </span>
+                      <div className="w-full max-w-md pointer-events-none">
+                        <CheckoutButton
+                          ctaText={ctaText || 'QUERO GARANTIR MINHA VAGA AGORA'}
+                          ctaUrl="#"
+                          ctaSubtext={ctaSubtext}
+                          customColor={ctaColor}
+                          customTextColor={ctaTextColor}
+                          size={ctaSize}
+                          thickness={ctaThickness}
+                          rounded={ctaRounded}
+                          pulse={ctaPulse}
                         />
                       </div>
                     </div>
@@ -1215,61 +1522,320 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 5: GARANTIA, DEPOIMENTOS & FAQ */}
+              {/* TAB 5: TEMPORIZADOR, GARANTIA, PROVAS SOCIAIS & FAQ */}
               {activeTab === 'faq' && (
                 <div className="space-y-6">
-                  {/* Garantia & Contador */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-950 border border-slate-800">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Dias de Garantia
+                  {/* 1. TEMPORIZADOR DE ESCASSEZ (FINO + COR AJUSTÁVEL) */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-emerald-400" />
+                        <span>Temporizador no Topo (Fino & Cor Personalizável)</span>
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={countdownEnabled}
+                          onChange={(e) => setCountdownEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                       </label>
-                      <select
-                        value={guaranteeDays}
-                        onChange={(e) => setGuaranteeDays(parseInt(e.target.value, 10))}
-                        className="w-full px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-semibold"
-                      >
-                        <option value={7}>7 Dias Incondicionais</option>
-                        <option value={15}>15 Dias de Garantia</option>
-                        <option value={30}>30 Dias Blindados</option>
-                      </select>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Cronômetro Regressivo
+                    {countdownEnabled && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Minutos do Contador
+                            </label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={countdownMinutes}
+                              onChange={(e) => setCountdownMinutes(parseInt(e.target.value, 10) || 15)}
+                              className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm font-bold"
+                            />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                              Cor do Temporizador
+                            </label>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {TIMER_COLOR_PRESETS.map((preset) => (
+                                <button
+                                  key={preset.id}
+                                  type="button"
+                                  onClick={() => setCountdownColor(preset.id)}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                    countdownColor === preset.id
+                                      ? 'bg-slate-800 border-emerald-400 text-white'
+                                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-3 h-3 rounded-full border border-white/25"
+                                    style={{ background: preset.swatch }}
+                                  />
+                                  <span>{preset.label}</span>
+                                </button>
+                              ))}
+                              <label className="px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 border bg-slate-900 border-slate-800 text-slate-300 cursor-pointer">
+                                <input
+                                  type="color"
+                                  value={countdownColor.startsWith('#') ? countdownColor : '#dc2626'}
+                                  onChange={(e) => setCountdownColor(e.target.value)}
+                                  className="w-3.5 h-3.5 bg-transparent border-0 p-0 cursor-pointer"
+                                />
+                                <span>Livre</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. BOTÃO / SELO DE GARANTIA AJUSTÁVEL */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                        <span>Botão & Selo de Garantia Ajustável</span>
+                      </h4>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={guaranteeEnabled}
+                          onChange={(e) => setGuaranteeEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                       </label>
-                      <select
-                        value={countdownEnabled ? 'true' : 'false'}
-                        onChange={(e) => setCountdownEnabled(e.target.value === 'true')}
-                        className="w-full px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm"
-                      >
-                        <option value="true">✅ Ativado no Topo</option>
-                        <option value="false">❌ Desativado</option>
-                      </select>
                     </div>
 
+                    {guaranteeEnabled && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Dias de Garantia
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={365}
+                              value={guaranteeDays}
+                              onChange={(e) => setGuaranteeDays(parseInt(e.target.value, 10) || 0)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Formato da Garantia
+                            </label>
+                            <select
+                              value={guaranteeStyle}
+                              onChange={(e) => setGuaranteeStyle(e.target.value as GuaranteeStyle)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                            >
+                              <option value="card">Card Completo</option>
+                              <option value="badge-button">Botão-Selo Clicável</option>
+                              <option value="seal">Escudo Centralizado</option>
+                              <option value="minimal">Barra Minimalista</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Tamanho
+                            </label>
+                            <select
+                              value={guaranteeSize}
+                              onChange={(e) => setGuaranteeSize(e.target.value as 'sm' | 'md' | 'lg')}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                            >
+                              <option value="sm">Pequeno (Compacto)</option>
+                              <option value="md">Médio (Padrão)</option>
+                              <option value="lg">Grande (Destaque)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Cor da Garantia
+                            </label>
+                            <select
+                              value={guaranteeColor.startsWith('#') ? 'custom' : guaranteeColor}
+                              onChange={(e) => {
+                                if (e.target.value !== 'custom') setGuaranteeColor(e.target.value);
+                              }}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                            >
+                              <option value="auto">Cor do Template</option>
+                              <option value="emerald">Verde Esmeralda</option>
+                              <option value="gold">Dourado VIP</option>
+                              <option value="blue">Azul Confiança</option>
+                              <option value="red">Vermelho</option>
+                              <option value="purple">Roxo</option>
+                              <option value="white">Branco / Neutro</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Título Personalizado (Opcional)
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={`Ex: Garantia Blindada de ${guaranteeDays} Dias`}
+                              value={guaranteeTitle}
+                              onChange={(e) => setGuaranteeTitle(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Texto do Botão de Garantia (Opcional)
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={`Ex: TESTAR SEM RISCO POR ${guaranteeDays} DIAS`}
+                              value={guaranteeButtonText}
+                              onChange={(e) => setGuaranteeButtonText(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            Texto Explicativo da Garantia (Opcional — deixe vazio para texto padrão traduzido)
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="Se por qualquer motivo você não gostar, devolvemos 100% do seu dinheiro sem perguntas..."
+                            value={guaranteeDescription}
+                            onChange={(e) => setGuaranteeDescription(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. FORMATOS DE PROVAS SOCIAIS & PRINTS EM CARROSSEL */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                        Minutos do Contador
-                      </label>
-                      <input
-                        type="number"
-                        value={countdownMinutes}
-                        onChange={(e) => setCountdownMinutes(parseInt(e.target.value, 10) || 15)}
-                        className="w-full px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm"
-                      />
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2 mb-1">
+                        <ImageIcon className="w-4 h-4 text-emerald-400" />
+                        <span>Formato das Provas Sociais & Prints de Resultados</span>
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        Escolha como exibir depoimentos e fotos de prints (WhatsApp, Instagram, comprovantes de resultados).
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {[
+                        { id: 'cards', label: 'Cards Clássicos', desc: 'Grade de depoimentos' },
+                        { id: 'carousel', label: 'Carrossel Prints', desc: 'Deslizante com zoom' },
+                        { id: 'gallery', label: 'Galeria Mosaico', desc: 'Grade de fotos/prints' },
+                        { id: 'whatsapp', label: 'Estilo WhatsApp', desc: 'Balões + prints' },
+                        { id: 'mixed', label: 'Misto Completo', desc: 'Carrossel + Cards' },
+                      ].map((fmt) => (
+                        <button
+                          key={fmt.id}
+                          type="button"
+                          onClick={() => setSocialProofLayout(fmt.id as SocialProofLayout)}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            socialProofLayout === fmt.id
+                              ? 'bg-emerald-500/15 border-emerald-500 text-white'
+                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="text-xs font-bold leading-tight">{fmt.label}</div>
+                          <div className="text-[10px] opacity-75 mt-0.5">{fmt.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Galeria / Carrossel de Fotos de Prints */}
+                    <div className="pt-3 border-t border-slate-800/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="text-xs font-bold text-white">
+                            Fotos & Prints de Prova Social ({socialProofImages.length})
+                          </h5>
+                          <p className="text-[11px] text-slate-400">
+                            Suba prints de conversas de clientes, resultados ou elogios para exibir no Carrossel ou Galeria
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAddSocialProofImage}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Adicionar Print</span>
+                        </button>
+                      </div>
+
+                      {socialProofImages.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {socialProofImages.map((img, idx) => (
+                            <div key={img.id || idx} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2 relative">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-slate-300">Print #{idx + 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSocialProofImage(img.id)}
+                                  className="p-1 text-slate-500 hover:text-rose-400 cursor-pointer"
+                                  title="Remover print"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <ImageUploadInput
+                                compact
+                                value={img.url}
+                                onChange={(val) => {
+                                  const updated = [...socialProofImages];
+                                  updated[idx].url = val;
+                                  setSocialProofImages(updated);
+                                }}
+                                label="Imagem / Print da Tela"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Legenda opcional (ex: Resultado em 7 dias)"
+                                value={img.caption || ''}
+                                onChange={(e) => {
+                                  const updated = [...socialProofImages];
+                                  updated[idx].caption = e.target.value;
+                                  setSocialProofImages(updated);
+                                }}
+                                className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Depoimentos */}
+                  {/* Depoimentos Escritos */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-white text-sm">Depoimentos de Alunos</h4>
+                      <h4 className="font-bold text-white text-sm">Depoimentos de Alunos / Clientes</h4>
                       <button
                         type="button"
                         onClick={handleAddTestimonial}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Adicionar Depoimento</span>
@@ -1325,8 +1891,8 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                             className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
                           />
 
-                          {/* Foto do Aluno (Upload ou URL) */}
-                          <div className="pt-1">
+                          {/* Foto do Aluno + Print Opcional */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                             <ImageUploadInput
                               compact
                               value={t.avatarUrl || ''}
@@ -1336,6 +1902,16 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                                 setTestimonials(updated);
                               }}
                               label="Foto do Aluno / Avatar"
+                            />
+                            <ImageUploadInput
+                              compact
+                              value={t.printImageUrl || ''}
+                              onChange={(val) => {
+                                const updated = [...testimonials];
+                                updated[idx].printImageUrl = val;
+                                setTestimonials(updated);
+                              }}
+                              label="Print / Foto Anexada (Opcional)"
                             />
                           </div>
                         </div>

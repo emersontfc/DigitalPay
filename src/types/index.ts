@@ -9,7 +9,48 @@ export type TemplateType =
   | 'sunset-creator'
   | 'midnight-violet'
   | 'emerald-prestige'
-  | 'monochrome-editorial';
+  | 'monochrome-editorial'
+  | 'ebook-classic-ivory'
+  | 'ebook-ocean-clean'
+  | 'ebook-emerald-reader'
+  | 'ebook-crimson-bestseller'
+  | 'ebook-royal-plum'
+  | 'ebook-midnight-gold';
+
+export type SocialProofLayout = 'cards' | 'carousel' | 'gallery' | 'whatsapp' | 'mixed';
+export type GuaranteeStyle = 'card' | 'badge-button' | 'seal' | 'minimal';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
+export type ButtonThickness = 'thin' | 'normal' | 'thick' | 'extra-thick';
+export type ButtonRounded = 'md' | 'xl' | 'full';
+
+export interface SocialProofImage {
+  id: string;
+  url: string;
+  caption?: string;
+}
+
+export interface PageDesignSettings {
+  // 1. Temporizador
+  countdown_color?: string; // 'auto' | 'red' | 'green' | 'gold' | 'blue' | 'orange' | 'purple' | 'rose' | 'black' | hex
+  // 4 & 5 & 9. Botões CTA
+  cta_color?: string; // 'auto' | preset ('emerald', 'green', 'red', 'gold', 'blue', 'purple', 'orange', 'rose', 'cyan', 'black', 'white') | hex ('#...')
+  cta_text_color?: string; // 'auto' | '#ffffff' | '#020617' | hex
+  cta_size?: ButtonSize;
+  cta_thickness?: ButtonThickness;
+  cta_rounded?: ButtonRounded;
+  cta_pulse?: boolean;
+  // 7. Provas Sociais
+  social_proof_layout?: SocialProofLayout;
+  social_proof_images?: SocialProofImage[];
+  // 8. Garantia Ajustável
+  guarantee_enabled?: boolean;
+  guarantee_style?: GuaranteeStyle;
+  guarantee_size?: 'sm' | 'md' | 'lg';
+  guarantee_color?: string; // 'auto' | 'emerald' | 'gold' | 'blue' | 'red' | 'purple' | 'white' | hex
+  guarantee_title?: string;
+  guarantee_description?: string;
+  guarantee_button_text?: string;
+}
 
 export interface Testimonial {
   id: string;
@@ -17,6 +58,7 @@ export interface Testimonial {
   role: string;
   content: string;
   avatarUrl?: string;
+  printImageUrl?: string;
   rating: number;
 }
 
@@ -85,6 +127,9 @@ export interface Product {
     'pt-ao'?: ProductTranslation;
   };
   
+  // Personalização visual da página (cores, botões, temporizador, provas sociais, garantia)
+  design_settings?: PageDesignSettings;
+
   // Entregáveis & Entrega Automática PaySuite
   deliverables?: import('./deliverables').ProductDeliverable[];
   delivery_mode?: import('./deliverables').DeliveryMode; // 'automatic' | 'manual'
@@ -132,6 +177,7 @@ export interface TemplateDefinition {
   name: string;
   description: string;
   badge: string;
+  category?: 'ebook' | 'vsl' | 'high-ticket' | 'brand';
   previewGradient: string;
   accentColor: string;
 }

@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS multilang_enabled BOOLEAN DEFAULT true;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS design_settings JSONB DEFAULT '{}'::jsonb;
 
 -- 2. Índice rápido para busca por Slug (URLs amigáveis /p/:slug)
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products(slug);
@@ -241,6 +242,7 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_template_check;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS multilang_enabled BOOLEAN DEFAULT true;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS translations JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS design_settings JSONB DEFAULT '{}'::jsonb;
 
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 

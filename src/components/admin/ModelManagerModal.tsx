@@ -29,6 +29,7 @@ export const ModelManagerModal: React.FC<ModelManagerModalProps> = ({
   currentProductData,
 }) => {
   const [activeTab, setActiveTab] = useState<'prontos' | 'salvos' | 'criar'>('prontos');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [models, setModels] = useState(getAllModels());
 
   // Form para salvar modelo atual
@@ -158,8 +159,35 @@ export const ModelManagerModal: React.FC<ModelManagerModalProps> = ({
                 💡 Ao selecionar um modelo pronto, toda a estrutura persuasiva (headline, copy, módulos de aulas, perguntas frequentes e garantia) será aplicada à sua página. Você poderá editar cada palavra como desejar!
               </div>
 
+              {/* Filtro por Categoria de Modelo */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: 'all', label: `Todos (${models.factory.length})` },
+                  { id: 'ebook', label: `📚 E-books (${models.factory.filter(m => m.category === 'ebook').length})` },
+                  { id: 'vsl', label: `🔥 VSL (${models.factory.filter(m => m.category === 'vsl').length})` },
+                  { id: 'mentoria', label: `👑 Mentoria (${models.factory.filter(m => m.category === 'mentoria').length})` },
+                  { id: 'marca', label: `🎨 Marcas (${models.factory.filter(m => m.category === 'marca').length})` },
+                  { id: 'comunidade', label: `👥 Comunidade (${models.factory.filter(m => m.category === 'comunidade').length})` },
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryFilter(cat.id)}
+                    className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer border ${
+                      categoryFilter === cat.id
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {models.factory.map((m) => (
+                {models.factory
+                  .filter((m) => categoryFilter === 'all' || m.category === categoryFilter)
+                  .map((m) => (
                   <div
                     key={m.id}
                     className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all flex flex-col justify-between group"
