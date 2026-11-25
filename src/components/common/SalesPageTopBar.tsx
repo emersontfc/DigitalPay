@@ -11,7 +11,7 @@ interface SalesPageTopBarProps {
 
 export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
   variant = 'neon',
-  showLanguageSelector = true,
+  showLanguageSelector = false,
 }) => {
   const [currentLang] = useSalesPageLanguage();
   const t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.pt;
@@ -108,9 +108,9 @@ export const SalesPageTopBar: React.FC<SalesPageTopBarProps> = ({
           />
         </div>
 
-        {/* Lado Direito: Selo de Segurança discreto + Seletor de Idioma & Moeda */}
+        {/* Lado Direito: Selo de Segurança discreto + Seletor de Idioma & Moeda (se ativado) */}
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <div className={`hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${styles.badge}`}>
+          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${styles.badge}`}>
             <Lock className="w-2.5 h-2.5" />
             <span>{t.security_badge}</span>
           </div>

@@ -9,6 +9,10 @@ import { BrandLogo } from '../common/BrandLogo';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { SocialProofSection } from '../common/SocialProofSection';
 import { GuaranteeSection } from '../common/GuaranteeSection';
+import { BonusSection } from '../common/BonusSection';
+import { TargetAudienceSection } from '../common/TargetAudienceSection';
+import { InstructorSection } from '../common/InstructorSection';
+import { StudyPlanSection } from '../common/StudyPlanSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -54,7 +58,7 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-emerald-500 selection:text-black">
       {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
-      <SalesPageTopBar variant="neon" showLanguageSelector={product.multilang_enabled !== false} />
+      <SalesPageTopBar variant="neon" showLanguageSelector={Boolean(product.multilang_enabled)} />
 
       {/* 2. Barra de Contagem Regressiva Fina Topo */}
       {product.countdown_enabled && (
@@ -136,6 +140,9 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
           )}
         </div>
       </section>
+
+      {/* 2.5. Público-Alvo: Qualificação e Desqualificação (Para quem É vs Para quem NÃO é) */}
+      <TargetAudienceSection product={product} />
 
       {/* 3. Benefícios / O que você vai receber */}
       {product.features && product.features.length > 0 && (
@@ -231,6 +238,26 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
+      {/* 4.5. Plano de Estudos / Cronograma / Jornada */}
+      <StudyPlanSection
+        product={product}
+        accentTextClass="text-emerald-400"
+        accentBgClass="bg-emerald-500/10"
+        accentBorderClass="border-emerald-500/30"
+        cardBgClass="bg-slate-950/80"
+        cardBorderClass="border-slate-800"
+      />
+
+      {/* 4.6. Bônus Exclusivos com Ancoragem de Valor */}
+      <BonusSection
+        product={product}
+        accentTextClass="text-emerald-400"
+        accentBgClass="bg-emerald-500/10"
+        accentBorderClass="border-emerald-500/30"
+        cardBgClass="bg-slate-950/90"
+        cardBorderClass="border-slate-800"
+      />
+
       {/* 5. Depoimentos / Prova Social (Carrossel de Prints, Galeria, WhatsApp, Cards) */}
       <SocialProofSection
         product={product}
@@ -243,6 +270,16 @@ export const KiwifyNeonTemplate: React.FC<TemplateProps> = ({ product }) => {
         cardBorderClass="border-slate-800"
         starColorClass="fill-amber-400 text-amber-400"
         sectionBgClass="bg-gradient-to-b from-transparent via-slate-900/30 to-transparent"
+      />
+
+      {/* 5.5. Sobre o Especialista / Bio do Instrutor */}
+      <InstructorSection
+        product={product}
+        accentTextClass="text-emerald-400"
+        accentBgClass="bg-emerald-500/10"
+        accentBorderClass="border-emerald-500/30"
+        cardBgClass="bg-slate-950/90"
+        cardBorderClass="border-slate-800"
       />
 
       {/* 6. Garantia Incondicional Ajustável */}

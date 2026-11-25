@@ -10,6 +10,10 @@ import { BrandLogo } from '../common/BrandLogo';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { SocialProofSection } from '../common/SocialProofSection';
 import { GuaranteeSection } from '../common/GuaranteeSection';
+import { BonusSection } from '../common/BonusSection';
+import { TargetAudienceSection } from '../common/TargetAudienceSection';
+import { InstructorSection } from '../common/InstructorSection';
+import { StudyPlanSection } from '../common/StudyPlanSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -504,7 +508,7 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
   return (
     <div className={`min-h-screen ${theme.bg} ${isLight ? 'text-slate-900' : 'text-slate-100'} ${theme.selection} font-sans`}>
       {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
-      <SalesPageTopBar variant={theme.topBarVariant} showLanguageSelector={product.multilang_enabled !== false} />
+      <SalesPageTopBar variant={theme.topBarVariant} showLanguageSelector={Boolean(product.multilang_enabled)} />
 
       {/* 2. Barra de Contagem Regressiva Fina Topo */}
       {product.countdown_enabled && (
@@ -584,6 +588,9 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
           ) : null}
         </div>
       </section>
+
+      {/* 3.5. Público-Alvo: Qualificação e Desqualificação */}
+      <TargetAudienceSection product={product} isLight={isLight} />
 
       {/* 4. Grade de Diferenciais & O Que Está Incluso */}
       {product.features && product.features.length > 0 && (
@@ -674,6 +681,28 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
         </section>
       )}
 
+      {/* 5.5. Plano de Estudos / Cronograma */}
+      <StudyPlanSection
+        product={product}
+        isLight={isLight}
+        accentTextClass={theme.accentText}
+        accentBgClass={theme.accentBg}
+        accentBorderClass={theme.accentBorder}
+        cardBgClass={theme.cardBg}
+        cardBorderClass={theme.cardBorder}
+      />
+
+      {/* 5.6. Bônus Exclusivos de Alto Valor */}
+      <BonusSection
+        product={product}
+        isLight={isLight}
+        accentTextClass={theme.accentText}
+        accentBgClass={theme.accentBg}
+        accentBorderClass={theme.accentBorder}
+        cardBgClass={theme.cardBg}
+        cardBorderClass={theme.cardBorder}
+      />
+
       {/* 6. Prova Social & Depoimentos (Carrossel de Prints, Galeria, WhatsApp, Cards, Misto) */}
       <SocialProofSection
         product={product}
@@ -687,6 +716,17 @@ export const BrandThemeTemplate: React.FC<BrandThemeTemplateProps> = ({ product 
         starColorClass={theme.starColor}
         sectionBgClass={`${sectionBgAlt} border-y ${sectionBorder}`}
         lightMode={isLight}
+      />
+
+      {/* 6.5. Sobre o Especialista */}
+      <InstructorSection
+        product={product}
+        isLight={isLight}
+        accentTextClass={theme.accentText}
+        accentBgClass={theme.accentBg}
+        accentBorderClass={theme.accentBorder}
+        cardBgClass={theme.cardBg}
+        cardBorderClass={theme.cardBorder}
       />
 
       {/* 7. Caixa de Preço & Oferta Principal com Seletor de Moeda Integrado */}

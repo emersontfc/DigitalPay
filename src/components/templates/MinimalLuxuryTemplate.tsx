@@ -9,6 +9,10 @@ import { BrandLogo } from '../common/BrandLogo';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { SocialProofSection } from '../common/SocialProofSection';
 import { GuaranteeSection } from '../common/GuaranteeSection';
+import { BonusSection } from '../common/BonusSection';
+import { TargetAudienceSection } from '../common/TargetAudienceSection';
+import { InstructorSection } from '../common/InstructorSection';
+import { StudyPlanSection } from '../common/StudyPlanSection';
 import { useVslPitchDelay } from '../../hooks/useVslPitchDelay';
 import { formatPrice } from '../../utils/currency';
 import { useSalesPageLanguage, UI_TRANSLATIONS } from '../../utils/i18n';
@@ -48,7 +52,7 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 selection:bg-indigo-600 selection:text-white">
       {/* 1. Barra de Identidade Visual Ultrafina Topo: Digitall Pay */}
-      <SalesPageTopBar variant="luxury" showLanguageSelector={product.multilang_enabled !== false} />
+      <SalesPageTopBar variant="luxury" showLanguageSelector={Boolean(product.multilang_enabled)} />
 
       {/* 2. Timer discreto e fino */}
       {product.countdown_enabled && (
@@ -122,6 +126,9 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         </div>
       </section>
 
+      {/* 2.5. Público-Alvo: Qualificação e Desqualificação */}
+      <TargetAudienceSection product={product} />
+
       {/* 3. Destaques Executivos */}
       {product.features && product.features.length > 0 && (
         <section className="py-20 px-4 bg-slate-900/40 border-y border-slate-800/80">
@@ -193,6 +200,26 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         </section>
       )}
 
+      {/* 4.5. Plano de Estudos / Cronograma */}
+      <StudyPlanSection
+        product={product}
+        accentTextClass="text-indigo-400"
+        accentBgClass="bg-indigo-500/10"
+        accentBorderClass="border-indigo-500/30"
+        cardBgClass="bg-slate-900/60"
+        cardBorderClass="border-slate-800"
+      />
+
+      {/* 4.6. Bônus Exclusivos de Alto Valor */}
+      <BonusSection
+        product={product}
+        accentTextClass="text-indigo-400"
+        accentBgClass="bg-indigo-500/10"
+        accentBorderClass="border-indigo-500/30"
+        cardBgClass="bg-slate-900/60"
+        cardBorderClass="border-slate-800"
+      />
+
       {/* 5. Depoimentos / Provas Sociais */}
       <SocialProofSection
         product={product}
@@ -205,6 +232,16 @@ export const MinimalLuxuryTemplate: React.FC<TemplateProps> = ({ product }) => {
         cardBorderClass="border-slate-800"
         starColorClass="fill-amber-400 text-amber-400"
         sectionBgClass="bg-slate-900/20 border-t border-slate-800/60"
+      />
+
+      {/* 5.5. Sobre o Especialista */}
+      <InstructorSection
+        product={product}
+        accentTextClass="text-indigo-400"
+        accentBgClass="bg-indigo-500/10"
+        accentBorderClass="border-indigo-500/30"
+        cardBgClass="bg-slate-900/60"
+        cardBorderClass="border-slate-800"
       />
 
       {/* 6. Garantia Ajustável */}

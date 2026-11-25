@@ -15,6 +15,11 @@ import {
   ButtonSize,
   ButtonThickness,
   ButtonRounded,
+  BonusItem,
+  TargetAudience,
+  InstructorProfile,
+  StudyPlan,
+  StudyPlanStep,
 } from '../../types';
 import { TemplateSelector } from './TemplateSelector';
 import { TemplateRenderer } from '../templates/TemplateRenderer';
@@ -52,7 +57,13 @@ import {
   Shield,
   Zap,
   Image as ImageIcon,
-  CopyPlus
+  CopyPlus,
+  Gift,
+  UserCheck,
+  Users,
+  Calendar,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 
 interface ProductEditorModalProps {
@@ -96,7 +107,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   onSave,
   onDuplicate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'faq' | 'entregaveis' | 'preview'>('geral');
+  const [activeTab, setActiveTab] = useState<'geral' | 'copy' | 'preco' | 'conteudo' | 'blocos' | 'faq' | 'entregaveis' | 'preview'>('geral');
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -128,8 +139,50 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
   const [facebookPixelId, setFacebookPixelId] = useState(product?.facebook_pixel_id || '');
   const [whatsappNumber, setWhatsappNumber] = useState(product?.whatsapp_number || '');
   const [whatsappMessage, setWhatsappMessage] = useState(product?.whatsapp_message || '');
-  const [multilangEnabled, setMultilangEnabled] = useState<boolean>(product?.multilang_enabled !== false);
+  const [multilangEnabled, setMultilangEnabled] = useState<boolean>(Boolean(product?.multilang_enabled));
   const [previewLang] = useSalesPageLanguage();
+
+  // Blocos de Alta Conversão (Bônus, Bio, Público-Alvo, Cronograma)
+  const [bonuses, setBonuses] = useState<BonusItem[]>(product?.bonuses || []);
+  const [targetAudience, setTargetAudience] = useState<TargetAudience>(
+    product?.target_audience || {
+      enabled: false,
+      title: 'Será que este produto é para você?',
+      subtitle: 'Transparência total: veja com clareza para quem foi pensado este treinamento e quem NÃO deve comprá-lo:',
+      for_whom: [
+        'Quer aprender um método validado e aplicável no dia a dia',
+        'Busca gerar mais resultados e construir uma nova fonte de renda',
+        'Está comprometido em seguir o passo a passo com seriedade'
+      ],
+      not_for_whom: [
+        'Quem procura fórmulas mágicas ou dinheiro fácil da noite para o dia',
+        'Quem não está disposto a estudar e aplicar os ensinamentos',
+        'Quem desiste no primeiro obstáculo sem tentar de verdade'
+      ],
+    }
+  );
+  const [instructor, setInstructor] = useState<InstructorProfile>(
+    product?.instructor || {
+      enabled: false,
+      name: '',
+      role_title: 'Especialista & Produtor de Conteúdo',
+      bio: '',
+      avatar_url: '',
+      badges: ['Autoridade Reconhecida', '+5.000 Alunos', 'Suporte VIP'],
+    }
+  );
+  const [studyPlan, setStudyPlan] = useState<StudyPlan>(
+    product?.study_plan || {
+      enabled: false,
+      title: 'Seu Cronograma Passo a Passo',
+      subtitle: 'Uma trajetória estruturada para você dominar cada etapa sem se perder no caminho:',
+      steps: [
+        { id: 'sp-1', phase: 'Semana 1', title: 'Fundamentos e Alinhamento Estratégico', description: 'Entendimento da visão geral, configurações iniciais e conceitos essenciais.', duration: '5 Aulas' },
+        { id: 'sp-2', phase: 'Semana 2', title: 'Execução e Construção Prática', description: 'Montagem da estrutura e primeiros testes no campo de batalha.', duration: '7 Dias' },
+        { id: 'sp-3', phase: 'Semana 3', title: 'Escala e Maximização de Resultados', description: 'Aceleração de conversão e otimização contínua.', duration: '6 Aulas' },
+      ],
+    }
+  );
 
   // Personalização Visual (Botões, Temporizador, Provas Sociais, Garantia)
   const [countdownColor, setCountdownColor] = useState<string>(initialDesign.countdown_color || 'auto');
@@ -282,6 +335,123 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     setSocialProofImages(socialProofImages.filter((img) => img.id !== id));
   };
 
+  // Handlers para Bônus Exclusivos
+  const handleAddBonus = () => {
+    setBonuses([
+      ...bonuses,
+      {
+        id: crypto.randomUUID(),
+        tag: `BÔNUS EXCLUSIVO #${bonuses.length + 1}`,
+        title: `Bônus #${bonuses.length + 1}: Ferramenta Prática`,
+        description: 'Descrição do material e benefícios diretos para o aluno.',
+        original_value: 197,
+        image_url: '',
+      },
+    ]);
+  };
+
+  const handleUpdateBonus = (index: number, updated: Partial<BonusItem>) => {
+    const list = [...bonuses];
+    list[index] = { ...list[index], ...updated };
+    setBonuses(list);
+  };
+
+  const handleRemoveBonus = (id: string) => {
+    setBonuses(bonuses.filter((b) => b.id !== id));
+  };
+
+  // Handlers para Público-Alvo (Para quem É / Para quem NÃO é)
+  const handleAddForWhom = () => {
+    setTargetAudience({
+      ...targetAudience,
+      for_whom: [...(targetAudience.for_whom || []), ''],
+    });
+  };
+
+  const handleUpdateForWhom = (idx: number, val: string) => {
+    const list = [...(targetAudience.for_whom || [])];
+    list[idx] = val;
+    setTargetAudience({ ...targetAudience, for_whom: list });
+  };
+
+  const handleRemoveForWhom = (idx: number) => {
+    setTargetAudience({
+      ...targetAudience,
+      for_whom: (targetAudience.for_whom || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  const handleAddNotForWhom = () => {
+    setTargetAudience({
+      ...targetAudience,
+      not_for_whom: [...(targetAudience.not_for_whom || []), ''],
+    });
+  };
+
+  const handleUpdateNotForWhom = (idx: number, val: string) => {
+    const list = [...(targetAudience.not_for_whom || [])];
+    list[idx] = val;
+    setTargetAudience({ ...targetAudience, not_for_whom: list });
+  };
+
+  const handleRemoveNotForWhom = (idx: number) => {
+    setTargetAudience({
+      ...targetAudience,
+      not_for_whom: (targetAudience.not_for_whom || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  // Handlers para Selos de Especialista
+  const handleAddInstructorBadge = () => {
+    setInstructor({
+      ...instructor,
+      badges: [...(instructor.badges || []), 'Novo Selo de Autoridade'],
+    });
+  };
+
+  const handleUpdateInstructorBadge = (idx: number, val: string) => {
+    const list = [...(instructor.badges || [])];
+    list[idx] = val;
+    setInstructor({ ...instructor, badges: list });
+  };
+
+  const handleRemoveInstructorBadge = (idx: number) => {
+    setInstructor({
+      ...instructor,
+      badges: (instructor.badges || []).filter((_, i) => i !== idx),
+    });
+  };
+
+  // Handlers para Cronograma / Plano de Estudos
+  const handleAddStudyStep = () => {
+    setStudyPlan({
+      ...studyPlan,
+      steps: [
+        ...(studyPlan.steps || []),
+        {
+          id: crypto.randomUUID(),
+          phase: `Semana ${(studyPlan.steps?.length || 0) + 1}`,
+          title: `Nova Etapa ${(studyPlan.steps?.length || 0) + 1}`,
+          description: 'O que o aluno vai aprender e executar durante este período.',
+          duration: '5 Aulas',
+        },
+      ],
+    });
+  };
+
+  const handleUpdateStudyStep = (idx: number, updated: Partial<StudyPlanStep>) => {
+    const list = [...(studyPlan.steps || [])];
+    list[idx] = { ...list[idx], ...updated };
+    setStudyPlan({ ...studyPlan, steps: list });
+  };
+
+  const handleRemoveStudyStep = (id: string) => {
+    setStudyPlan({
+      ...studyPlan,
+      steps: (studyPlan.steps || []).filter((s) => s.id !== id),
+    });
+  };
+
   const currentDesignSettings: PageDesignSettings = {
     countdown_color: countdownColor,
     cta_color: ctaColor,
@@ -333,6 +503,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     modules,
     testimonials,
     faqs,
+    bonuses,
+    target_audience: targetAudience,
+    instructor,
+    study_plan: studyPlan,
     design_settings: currentDesignSettings,
     deliverables,
     delivery_mode: deliveryMode,
@@ -370,6 +544,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
     if (d.modules) setModules([...d.modules]);
     if (d.testimonials) setTestimonials([...d.testimonials]);
     if (d.faqs) setFaqs([...d.faqs]);
+    if (d.bonuses) setBonuses([...d.bonuses]);
+    if (d.target_audience) setTargetAudience({ ...d.target_audience });
+    if (d.instructor) setInstructor({ ...d.instructor });
+    if (d.study_plan) setStudyPlan({ ...d.study_plan });
     if (d.deliverables) setDeliverables([...d.deliverables]);
     if (d.delivery_mode) setDeliveryMode(d.delivery_mode);
     if (d.access_expires_days !== undefined) setAccessExpiresDays(d.access_expires_days);
@@ -447,6 +625,10 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
         modules,
         testimonials,
         faqs,
+        bonuses,
+        target_audience: targetAudience,
+        instructor,
+        study_plan: studyPlan,
         design_settings: currentDesignSettings,
         deliverables,
         delivery_mode: deliveryMode,
@@ -584,11 +766,12 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
           <div className="px-3 sm:px-6 border-b border-slate-800 bg-slate-950/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto shrink-0 py-2 no-scrollbar scroll-smooth">
             {[
               { id: 'geral', label: '1. Geral', fullLabel: '1. Geral & Template', icon: Layers },
-              { id: 'copy', label: '2. Mídia & VSL', fullLabel: '2. Copy & Mídia', icon: Video },
-              { id: 'preco', label: '3. Preço & Pixels', fullLabel: '3. Preço & Checkout', icon: DollarSign },
-              { id: 'conteudo', label: '4. Conteúdo', fullLabel: '4. Benefícios & Módulos', icon: Sparkles },
-              { id: 'faq', label: '5. Garantia & FAQ', fullLabel: '5. Garantia & FAQ', icon: HelpCircle },
-              { id: 'entregaveis', label: '6. Entregáveis', fullLabel: '6. Entregáveis do Produto', icon: Package },
+              { id: 'copy', label: '2. Mídia', fullLabel: '2. Copy & Mídia VSL', icon: Video },
+              { id: 'preco', label: '3. Preço', fullLabel: '3. Preço & Checkout', icon: DollarSign },
+              { id: 'conteudo', label: '4. Módulos', fullLabel: '4. Benefícios & Módulos', icon: Sparkles },
+              { id: 'blocos', label: '5. Bônus & Bio', fullLabel: '5. Bônus, Bio & Público', icon: Gift },
+              { id: 'faq', label: '6. Provas & FAQ', fullLabel: '6. Provas, Garantia & FAQ', icon: HelpCircle },
+              { id: 'entregaveis', label: '7. Entregáveis', fullLabel: '7. Entregáveis PaySuite', icon: Package },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1382,7 +1565,7 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                       </label>
                     </div>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                      Quando ativado, exibe o seletor internacional (<span className="text-white font-semibold">🇲🇿 Moçambique • 🇧🇷 Brasil • 🇦🇴 Angola • 🇺🇸 English • 🇪🇸 Español</span>) no topo da sua página. Ao mudar, a moeda e os preços se convertem automaticamente (ex: <span className="text-emerald-400 font-mono">2.290 MT</span> ➔ <span className="text-emerald-400 font-mono">R$ 197</span> ➔ <span className="text-emerald-400 font-mono">$ 36</span> ➔ <span className="text-emerald-400 font-mono">€ 33</span>).
+                      <strong>Padrão de Alta Conversão (Desativado por Padrão):</strong> Para seguir o padrão das grandes plataformas (Hotmart, Kiwify), o topo da página permanece limpo e 100% focado na venda. Se desejar exibir as bandeiras de idiomas no topo da página, ative esta opção. A conversão de moedas (<span className="text-emerald-400 font-mono">MT, R$, Kz, $, €</span>) continua sempre disponível de forma elegante diretamente no bloco de preço/checkout.
                     </p>
                     <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-slate-400">
                       <span className="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-1.5 font-medium">
@@ -1522,7 +1705,519 @@ export const ProductEditorModal: React.FC<ProductEditorModalProps> = ({
                 </div>
               )}
 
-              {/* TAB 5: TEMPORIZADOR, GARANTIA, PROVAS SOCIAIS & FAQ */}
+              {/* TAB 5: BÔNUS, BIO & PÚBLICO */}
+              {activeTab === 'blocos' && (
+                <div className="space-y-6">
+                  {/* 1. BÔNUS EXCLUSIVOS (STACK DE VALOR) */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          <Gift className="w-4 h-4 text-emerald-400" />
+                          <span>Bônus Exclusivos (Stack de Valor & Ancoragem)</span>
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Bônus com valor ancorado (ex: De R$ 197 por R$ 0) aumentam drasticamente a percepção de valor da oferta.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddBonus}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Adicionar Novo Bônus</span>
+                      </button>
+                    </div>
+
+                    {bonuses.length === 0 ? (
+                      <div className="p-6 rounded-xl border border-dashed border-slate-800 text-center">
+                        <Gift className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                        <p className="text-xs text-slate-400 mb-3">Nenhum bônus cadastrado ainda para esta página.</p>
+                        <button
+                          type="button"
+                          onClick={handleAddBonus}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer"
+                        >
+                          + Criar Primeiro Bônus Exclusivo
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {bonuses.map((b, idx) => (
+                          <div
+                            key={b.id || idx}
+                            className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-md"
+                          >
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  Tag / Destaque do Bônus
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: BÔNUS EXCLUSIVO #1"
+                                  value={b.tag || ''}
+                                  onChange={(e) => handleUpdateBonus(idx, { tag: e.target.value })}
+                                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-bold"
+                                />
+                              </div>
+
+                              <div className="sm:col-span-2 flex items-end gap-2">
+                                <div className="flex-1">
+                                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    Título do Bônus *
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="Ex: Planilha de Gestão Financeira Automatizada"
+                                    value={b.title}
+                                    onChange={(e) => handleUpdateBonus(idx, { title: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-bold"
+                                  />
+                                </div>
+                                <div className="w-32">
+                                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    Valor Ancorado
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    placeholder="197"
+                                    value={b.original_value || ''}
+                                    onChange={(e) => handleUpdateBonus(idx, { original_value: parseFloat(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono font-bold"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveBonus(b.id)}
+                                  className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800/80 cursor-pointer"
+                                  title="Remover bônus"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                O que é e o que o aluno ganha com este bônus:
+                              </label>
+                              <textarea
+                                rows={2}
+                                placeholder="Descreva os benefícios práticos do bônus..."
+                                value={b.description}
+                                onChange={(e) => handleUpdateBonus(idx, { description: e.target.value })}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs"
+                              />
+                            </div>
+
+                            {/* Upload de Capa / Mockup do Bônus */}
+                            <div className="pt-1">
+                              <ImageUploadInput
+                                value={b.image_url || ''}
+                                onChange={(url) => handleUpdateBonus(idx, { image_url: url })}
+                                label="Capa / Mockup 3D do Bônus (Opcional)"
+                                placeholder="https://... ou faça upload da imagem do bônus"
+                              />
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Resumo do Stack de Valor */}
+                        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center justify-between">
+                          <span>
+                            Total de <strong>{bonuses.length} bônus</strong> cadastrados • Valor total ancorado:{' '}
+                            <strong>
+                              {bonuses.reduce((acc, curr) => acc + (Number(curr.original_value) || 0), 0).toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: currency || 'BRL',
+                              })}
+                            </strong>
+                          </span>
+                          <span className="font-bold text-white bg-emerald-500/20 px-2 py-0.5 rounded">
+                            Exibido como 100% GRÁTIS
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. SOBRE O ESPECIALISTA / BIO DO INSTRUTOR */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          <UserCheck className="w-4 h-4 text-emerald-400" />
+                          <span>Sobre o Especialista / Bio do Instrutor</span>
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Apresente quem criou o treinamento para gerar conexão, autoridade e confiança.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={instructor.enabled !== false}
+                          onChange={(e) => setInstructor({ ...instructor, enabled: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+
+                    {instructor.enabled !== false && (
+                      <div className="space-y-4 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Nome do Especialista / Instrutor
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Ex: Emerson Carlos"
+                              value={instructor.name || ''}
+                              onChange={(e) => setInstructor({ ...instructor, name: e.target.value })}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Cargo / Título de Autoridade
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Ex: Mentor de Negócios Digitais & Criador do Método"
+                              value={instructor.role_title || ''}
+                              onChange={(e) => setInstructor({ ...instructor, role_title: e.target.value })}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-semibold"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            Biografia & História do Especialista
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Conte a trajetória, conquistas e por que você é a pessoa certa para guiar o aluno..."
+                            value={instructor.bio || ''}
+                            onChange={(e) => setInstructor({ ...instructor, bio: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                          />
+                        </div>
+
+                        {/* Foto do Especialista */}
+                        <div>
+                          <ImageUploadInput
+                            value={instructor.avatar_url || ''}
+                            onChange={(url) => setInstructor({ ...instructor, avatar_url: url })}
+                            label="Foto / Imagem do Especialista"
+                            placeholder="https://... ou faça upload da sua foto"
+                          />
+                        </div>
+
+                        {/* Selos de Conquista / Badges */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                              Selos de Conquistas & Autoridade
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleAddInstructorBadge}
+                              className="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>Adicionar Selo</span>
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            {(instructor.badges || []).map((b, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Ex: +5.000 Alunos Atendidos"
+                                  value={b}
+                                  onChange={(e) => handleUpdateInstructorBadge(idx, e.target.value)}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveInstructorBadge(idx)}
+                                  className="p-1.5 text-slate-500 hover:text-rose-400"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. PÚBLICO-ALVO: QUALIFICAÇÃO & DESQUALIFICAÇÃO */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          <Users className="w-4 h-4 text-emerald-400" />
+                          <span>Público-Alvo: "Para Quem É" vs "Para Quem NÃO É"</span>
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Filtre os compradores ideais e desqualifique os não-alinhados para aumentar a conversão.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={targetAudience.enabled !== false}
+                          onChange={(e) => setTargetAudience({ ...targetAudience, enabled: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+
+                    {targetAudience.enabled !== false && (
+                      <div className="space-y-4 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Título da Seção
+                            </label>
+                            <input
+                              type="text"
+                              value={targetAudience.title || ''}
+                              onChange={(e) => setTargetAudience({ ...targetAudience, title: e.target.value })}
+                              placeholder="Será que este produto é para você?"
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Subtítulo Explicativo
+                            </label>
+                            <input
+                              type="text"
+                              value={targetAudience.subtitle || ''}
+                              onChange={(e) => setTargetAudience({ ...targetAudience, subtitle: e.target.value })}
+                              placeholder="Transparência total sobre quem deve e quem não deve entrar..."
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 2 Colunas lado a lado */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Coluna Verde: Para Quem É */}
+                          <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-3">
+                            <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
+                              <span className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>Para quem É (Qualificação)</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleAddForWhom}
+                                className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[11px] font-bold hover:bg-emerald-500/30 cursor-pointer"
+                              >
+                                + Adicionar
+                              </button>
+                            </div>
+
+                            <div className="space-y-2">
+                              {(targetAudience.for_whom || []).map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Ex: Quer uma nova fonte de renda no digital"
+                                    value={item}
+                                    onChange={(e) => handleUpdateForWhom(idx, e.target.value)}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-emerald-500/30 text-white text-xs"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveForWhom(idx)}
+                                    className="p-1.5 text-slate-500 hover:text-rose-400 shrink-0"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Coluna Vermelha: Para Quem NÃO É */}
+                          <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-3">
+                            <div className="flex items-center justify-between pb-2 border-b border-rose-500/20">
+                              <span className="text-xs font-black uppercase text-rose-400 flex items-center gap-1.5">
+                                <XCircle className="w-4 h-4" />
+                                <span>Para quem NÃO é (Desqualificação)</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleAddNotForWhom}
+                                className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[11px] font-bold hover:bg-rose-500/30 cursor-pointer"
+                              >
+                                + Adicionar
+                              </button>
+                            </div>
+
+                            <div className="space-y-2">
+                              {(targetAudience.not_for_whom || []).map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Ex: Quem procura dinheiro fácil sem esforço"
+                                    value={item}
+                                    onChange={(e) => handleUpdateNotForWhom(idx, e.target.value)}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-rose-500/30 text-white text-xs"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveNotForWhom(idx)}
+                                    className="p-1.5 text-slate-500 hover:text-rose-400 shrink-0"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4. PLANO DE ESTUDOS / CRONOGRAMA */}
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-emerald-400" />
+                          <span>Plano de Estudos / Cronograma / Jornada</span>
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Estruture as etapas de aprendizagem por semanas ou fases para guiar a progressão do aluno.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={studyPlan.enabled !== false}
+                          onChange={(e) => setStudyPlan({ ...studyPlan, enabled: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-10 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
+                    </div>
+
+                    {studyPlan.enabled !== false && (
+                      <div className="space-y-4 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Título do Cronograma
+                            </label>
+                            <input
+                              type="text"
+                              value={studyPlan.title || ''}
+                              onChange={(e) => setStudyPlan({ ...studyPlan, title: e.target.value })}
+                              placeholder="Seu Cronograma Passo a Passo"
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                              Subtítulo
+                            </label>
+                            <input
+                              type="text"
+                              value={studyPlan.subtitle || ''}
+                              onChange={(e) => setStudyPlan({ ...studyPlan, subtitle: e.target.value })}
+                              placeholder="Uma trajetória estruturada para você dominar cada etapa..."
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Lista de Etapas */}
+                        <div className="space-y-3">
+                          {(studyPlan.steps || []).map((step, idx) => (
+                            <div key={step.id || idx} className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                                <div className="sm:col-span-3">
+                                  <input
+                                    type="text"
+                                    placeholder="Ex: Semana 1"
+                                    value={step.phase}
+                                    onChange={(e) => handleUpdateStudyStep(idx, { phase: e.target.value })}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs font-bold"
+                                  />
+                                </div>
+                                <div className="sm:col-span-6">
+                                  <input
+                                    type="text"
+                                    placeholder="Título da Etapa"
+                                    value={step.title}
+                                    onChange={(e) => handleUpdateStudyStep(idx, { title: e.target.value })}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs font-bold"
+                                  />
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Ex: 5 Aulas"
+                                    value={step.duration || ''}
+                                    onChange={(e) => handleUpdateStudyStep(idx, { duration: e.target.value })}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
+                                  />
+                                </div>
+                                <div className="sm:col-span-1 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveStudyStep(step.id)}
+                                    className="p-1.5 text-slate-500 hover:text-rose-400"
+                                    title="Remover etapa"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <textarea
+                                rows={2}
+                                placeholder="O que o aluno aprenderá e aplicará nesta etapa..."
+                                value={step.description}
+                                onChange={(e) => handleUpdateStudyStep(idx, { description: e.target.value })}
+                                className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleAddStudyStep}
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Adicionar Etapa ao Cronograma</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: TEMPORIZADOR, GARANTIA, PROVAS SOCIAIS & FAQ */}
               {activeTab === 'faq' && (
                 <div className="space-y-6">
                   {/* 1. TEMPORIZADOR DE ESCASSEZ (FINO + COR AJUSTÁVEL) */}

@@ -124,12 +124,17 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
 
 function normalizeProduct(p: Product): Product {
   const embeddedDesign = (p.translations as any)?._design;
+  const embeddedBlocks = (p.translations as any)?._extra_blocks || {};
   return {
     ...p,
     promo_price: Number(p.promo_price) || 97,
     original_price: Number(p.original_price) || 197,
     currency: p.currency || 'BRL',
     design_settings: p.design_settings || embeddedDesign || {},
+    bonuses: p.bonuses || embeddedBlocks.bonuses || [],
+    target_audience: p.target_audience || embeddedBlocks.target_audience,
+    instructor: p.instructor || embeddedBlocks.instructor,
+    study_plan: p.study_plan || embeddedBlocks.study_plan,
   };
 }
 
@@ -219,10 +224,17 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     .replace(/^-|-$/g, '');
   const cleanSlug = rawSlug || `produto-${Date.now().toString().slice(-4)}`;
 
+  const extraBlocks = {
+    bonuses: product.bonuses || [],
+    target_audience: product.target_audience,
+    instructor: product.instructor,
+    study_plan: product.study_plan,
+  };
   const designSettings = product.design_settings || {};
   const translationsWithDesign = {
     ...(product.translations || {}),
     _design: designSettings,
+    _extra_blocks: extraBlocks,
   };
 
   const fullProduct: Product = {
@@ -252,10 +264,14 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
     modules: product.modules || [],
     testimonials: product.testimonials || [],
     faqs: product.faqs || [],
+    bonuses: product.bonuses || [],
+    target_audience: product.target_audience,
+    instructor: product.instructor,
+    study_plan: product.study_plan,
     whatsapp_number: product.whatsapp_number ? product.whatsapp_number.trim() : undefined,
     whatsapp_message: product.whatsapp_message ? product.whatsapp_message.trim() : undefined,
     facebook_pixel_id: product.facebook_pixel_id ? product.facebook_pixel_id.trim() : undefined,
-    multilang_enabled: product.multilang_enabled !== undefined ? product.multilang_enabled : true,
+    multilang_enabled: Boolean(product.multilang_enabled),
     translations: translationsWithDesign as any,
     design_settings: designSettings,
     delivery_mode: product.delivery_mode || 'automatic',
@@ -285,9 +301,13 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
 
       if (error) {
         console.warn('Aviso ao sincronizar produto no Supabase (tentando modo compatível sem design_settings):', error.message);
-        // Tentativa 2: remove apenas design_settings (mantém translations._design para persistência na nuvem!)
+        // Tentativa 2: remove apenas colunas não-essenciais caso a tabela remota não as tenha (mantém translations._design e _extra_blocks)
         const payloadNoDesignCol = { ...fullProduct };
         delete (payloadNoDesignCol as any).design_settings;
+        delete (payloadNoDesignCol as any).bonuses;
+        delete (payloadNoDesignCol as any).target_audience;
+        delete (payloadNoDesignCol as any).instructor;
+        delete (payloadNoDesignCol as any).study_plan;
         const retry1 = await client.from('products').upsert(payloadNoDesignCol, { onConflict: 'id' });
 
         if (retry1.error) {
@@ -304,6 +324,10 @@ export async function saveProduct(product: Partial<Product> & { id?: string }): 
           delete (compatiblePayload as any).delivery_mode;
           delete (compatiblePayload as any).access_expires_days;
           delete (compatiblePayload as any).max_downloads;
+          delete (compatiblePayload as any).bonuses;
+          delete (compatiblePayload as any).target_audience;
+          delete (compatiblePayload as any).instructor;
+          delete (compatiblePayload as any).study_plan;
 
           const retryResult = await client.from('products').upsert(compatiblePayload, { onConflict: 'id' });
           if (retryResult.error) {

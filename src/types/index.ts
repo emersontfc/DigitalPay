@@ -75,6 +75,51 @@ export interface FaqItem {
   answer: string;
 }
 
+// Bônus Exclusivos de Alta Conversão (Stack de Valor)
+export interface BonusItem {
+  id: string;
+  title: string;
+  description: string;
+  original_value?: number; // Ex: 197
+  image_url?: string;
+  tag?: string; // Ex: "BÔNUS EXCLUSIVO #1"
+}
+
+// Público-Alvo: Qualificação e Desqualificação
+export interface TargetAudience {
+  enabled?: boolean;
+  title?: string;
+  subtitle?: string;
+  for_whom: string[]; // ['Quer criar uma nova fonte de renda', ...]
+  not_for_whom: string[]; // ['Quem busca dinheiro fácil sem esforço', ...]
+}
+
+// Sobre o Especialista / Bio do Instrutor / Autoridade
+export interface InstructorProfile {
+  enabled?: boolean;
+  name: string;
+  role_title: string;
+  bio: string;
+  avatar_url?: string;
+  badges?: string[]; // ['+5.000 Alunos', '7 Dígitos Faturados', 'Suporte VIP']
+}
+
+// Plano de Estudos / Cronograma / Jornada
+export interface StudyPlanStep {
+  id: string;
+  phase: string; // Ex: 'Semana 1' ou 'Fase 1'
+  title: string;
+  description: string;
+  duration?: string; // Ex: '5 Aulas' ou '7 Dias'
+}
+
+export interface StudyPlan {
+  enabled?: boolean;
+  title?: string;
+  subtitle?: string;
+  steps: StudyPlanStep[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -112,6 +157,12 @@ export interface Product {
   modules: ModuleItem[];
   testimonials: Testimonial[];
   faqs: FaqItem[];
+  
+  // Blocos de Alta Conversão (Padrão Top Infoprodutos Hotmart / Kiwify)
+  bonuses?: BonusItem[];
+  target_audience?: TargetAudience;
+  instructor?: InstructorProfile;
+  study_plan?: StudyPlan;
   
   // Extras opcionais de alta conversão
   whatsapp_number?: string;
@@ -160,6 +211,10 @@ export interface ProductTranslation {
   modules?: ModuleItem[];
   testimonials?: Testimonial[];
   faqs?: FaqItem[];
+  bonuses?: BonusItem[];
+  target_audience?: TargetAudience;
+  instructor?: InstructorProfile;
+  study_plan?: StudyPlan;
 }
 
 export interface PageModel {
